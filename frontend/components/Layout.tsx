@@ -99,7 +99,7 @@ const Layout = () => {
 
       {/* Sidebar */}
       <aside className={`
-          fixed md:static inset-y-0 left-0 z-50 w-64 bg-surface-light dark:bg-surface-dark border-r border-gray-200 dark:border-gray-800 flex flex-col transition-transform duration-300 transform 
+          fixed md:static inset-y-0 left-0 z-50 w-64 bg-surface-light dark:bg-surface-dark border-r border-gray-200 dark:border-gray-800 flex flex-col transition-transform duration-300 transform
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
       `}>
         <div className="h-16 flex items-center px-6 border-b border-gray-100 dark:border-gray-800/50">
@@ -118,12 +118,6 @@ const Layout = () => {
           <SidebarItem to="/ranking" icon={Trophy} label="Ranking" />
           <SidebarItem to="/achievements" icon={Medal} label="Conquistas" />
           <SidebarItem to="/activities" icon={Calendar} label="Atividades" />
-
-          <div className="my-4 border-t border-gray-100 dark:border-gray-800"></div>
-
-          <p className="px-3 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ações</p>
-          <SidebarItem to="/new-task" icon={CheckSquare} label="Nova Tarefa" />
-          <SidebarItem to="/new-project" icon={Rocket} label="Criar Projeto" />
         </nav>
 
         <div className="p-4 border-t border-gray-100 dark:border-gray-800">
