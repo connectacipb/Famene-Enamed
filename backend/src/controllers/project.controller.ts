@@ -94,6 +94,7 @@ export const getProjectDetails = async (req: Request, res: Response, next: NextF
         const { id } = req.params;
         const project = await prisma.project.findUnique({
             where: { id },
+            include: { members: { include: { user: { select: { id: true, name: true, avatarColor: true } } } } }
             include: {
                 members: { include: { user: { select: { id: true, name: true, avatarColor: true } } } },
                 leader: { select: { id: true, name: true, avatarColor: true } }
@@ -105,3 +106,44 @@ export const getProjectDetails = async (req: Request, res: Response, next: NextF
         next(error);
     }
 }
+export const updateProject = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { title, name, description, category, coverUrl, status, color, xpReward } = req.body;
+        const userId = (req as any).user?.userId;
+
+        console.log(`[UPDATE PROJECT] ID: ${id}, User: ${userId}, New Cover: ${coverUrl}`);
+
+        // Check if user is leader or admin
+        const project = await prisma.project.findUnique({ where: { id } });
+        if (!project) {
+            console.error(`[UPDATE PROJECT] Project ${id} not found`);
+            return res.status(404).json({ message: 'Projeto não encontrado' });
+        }
+
+        if (project.leaderId !== userId && (req as any).user?.role !== Role.ADMIN) {
+            console.error(`[UPDATE PROJECT] Permission denied for user ${userId} on project ${id}`);
+            return res.status(403).json({ message: 'Apenas o líder do projeto ou um administrador podem alterar os detalhes.' });
+        }
+
+        const data: any = {};
+        if (title !== undefined) data.title = title;
+        if (name !== undefined) data.title = name; // Compatibility with frontend using 'name'
+        if (description !== undefined) data.description = description;
+        if (category !== undefined) data.category = category;
+        if (coverUrl !== undefined) data.coverUrl = coverUrl;
+        if (status !== undefined) data.status = status;
+        if (color !== undefined) data.color = color;
+        if (xpReward !== undefined) data.xpReward = xpReward;
+
+        const updatedProject = await prisma.project.update({
+            where: { id },
+            data
+        });
+
+        res.json(updatedProject);
+    } catch (error: any) {
+        console.error(`[UPDATE PROJECT ERROR]:`, error);
+        next(error);
+    }
+};
