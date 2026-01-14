@@ -15,8 +15,29 @@ const ActivitiesScreen = () => {
   const [loading, setLoading] = useState(true);
   const [loadingEvents, setLoadingEvents] = useState(true);
 
+  // Estados para UI de Eventos
+  const [expandedParticipants, setExpandedParticipants] = useState<string | null>(null);
+
+  const toggleParticipantsList = (eventId: string) => {
+    setExpandedParticipants(prev => prev === eventId ? null : eventId);
+  };
+
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; eventId: string | null; eventTitle: string }>({
+    show: false,
+    eventId: null,
+    eventTitle: ''
+  });
+
+  const openDeleteConfirm = (eventId: string, eventTitle: string) => {
+    setDeleteConfirm({ show: true, eventId, eventTitle });
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteConfirm({ show: false, eventId: null, eventTitle: '' });
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDeadlines = async () => {
       try {
         const response = await api.get('/tasks/my-tasks');
         setDeadlines(response.data);
@@ -40,7 +61,7 @@ const ActivitiesScreen = () => {
       }
     };
 
-    fetchData();
+    fetchDeadlines();
     fetchEvents();
   }, []);
 
@@ -61,25 +82,6 @@ const ActivitiesScreen = () => {
     }
   };
 
-  const [expandedParticipants, setExpandedParticipants] = useState<string | null>(null);
-
-  const toggleParticipantsList = (eventId: string) => {
-    setExpandedParticipants(prev => prev === eventId ? null : eventId);
-  };
-
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; eventId: string | null; eventTitle: string }>({
-    show: false,
-    eventId: null,
-    eventTitle: ''
-  });
-
-  const openDeleteConfirm = (eventId: string, eventTitle: string) => {
-    setDeleteConfirm({ show: true, eventId, eventTitle });
-  };
-
-  const closeDeleteConfirm = () => {
-    setDeleteConfirm({ show: false, eventId: null, eventTitle: '' });
-  };
 
   const handleDeleteEvent = async () => {
     if (!deleteConfirm.eventId) return;
@@ -157,7 +159,7 @@ const ActivitiesScreen = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-          {/* Section: Deadlines */}
+          {/* Section: Deadlines (Integrated from DEV branch logic) */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="bg-red-100 dark:bg-red-900/20 p-2 rounded-lg text-red-600 dark:text-red-400">
@@ -204,7 +206,7 @@ const ActivitiesScreen = () => {
                   </div>
 
                   <button
-                    onClick={() => navigate('/kanban')}
+                    onClick={() => navigate(`/project-details/${item.projectId}`)}
                     className="px-4 py-2 rounded-xl bg-gray-50 dark:bg-white/5 hover:bg-primary hover:text-white text-gray-500 dark:text-gray-400 transition-all text-xs font-bold flex items-center justify-center gap-2 group/btn whitespace-nowrap"
                   >
                     <Kanban size={14} /> Ver Board
@@ -214,7 +216,7 @@ const ActivitiesScreen = () => {
             </div>
           </div>
 
-          {/* Section: Agenda Connecta */}
+          {/* Section: Agenda Connecta (Using Dynamic Events from HEAD) */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="bg-primary/10 p-2 rounded-lg text-primary">
@@ -286,53 +288,56 @@ const ActivitiesScreen = () => {
                           </div>
 
                           {/* Botão de participação */}
-                          <button
-                            onClick={() => handleToggleParticipation(event.id, isParticipating)}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${isParticipating
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300'
-                              : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
-                              }`}
-                          >
-                            {isParticipating ? (
-                              <>
-                                <UserCheck size={14} />
-                                Participando
-                              </>
-                            ) : (
-                              <>
-                                <UserPlus size={14} />
-                                Participar
-                              </>
-                            )}
-                          </button>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => handleToggleParticipation(event.id, isParticipating)}
+                              className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${isParticipating
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300'
+                                : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
+                                }`}
+                            >
+                              {isParticipating ? (
+                                <>
+                                  <UserCheck size={14} />
+                                  Participando
+                                </>
+                              ) : (
+                                <>
+                                  <UserPlus size={14} />
+                                  Participar
+                                </>
+                              )}
+                            </button>
+                          </div>
+
 
                           {/* Botões de editar e deletar - apenas para criador */}
                           {event.createdById === user?.id && (
                             <>
-                              <div className="flex gap-2 mt-3">
+                              <div className="flex gap-2 mt-3 p-2 bg-gray-50 dark:bg-white/5 rounded-lg">
                                 <button
                                   onClick={() => navigate(`/eventos/editar/${event.id}`)}
-                                  className="px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-300 transition-all"
+                                  className="px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-primary transition-all shadow-sm"
                                 >
                                   <Edit2 size={12} />
                                   Editar
                                 </button>
                                 <button
                                   onClick={() => openDeleteConfirm(event.id, event.title)}
-                                  className="px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-300 transition-all"
+                                  className="px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-red-600 transition-all shadow-sm"
                                 >
                                   <Trash2 size={12} />
                                   Excluir
                                 </button>
                                 <button
                                   onClick={() => toggleParticipantsList(event.id)}
-                                  className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${expandedParticipants === event.id
-                                      ? 'bg-primary text-white'
-                                      : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 hover:bg-primary/20 hover:text-primary'
+                                  className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm ${expandedParticipants === event.id
+                                    ? 'bg-primary text-white'
+                                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-primary'
                                     }`}
                                 >
                                   <Users size={12} />
-                                  Ver Participantes ({participantCount})
+                                  Participantes
                                 </button>
                               </div>
 
