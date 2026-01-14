@@ -9,6 +9,17 @@ export interface CreateEventData {
     description?: string;
 }
 
+export interface EventParticipant {
+    id: string;
+    userId: string;
+    user: {
+        id: string;
+        name: string;
+        avatarColor?: string;
+    };
+    joinedAt: string;
+}
+
 export interface Event {
     id: string;
     title: string;
@@ -23,6 +34,7 @@ export interface Event {
         name: string;
         avatarColor?: string;
     };
+    participants: EventParticipant[];
     createdAt: string;
 }
 
@@ -43,4 +55,12 @@ export const getEventById = async (id: string): Promise<Event> => {
 
 export const deleteEvent = async (id: string): Promise<void> => {
     await api.delete(`/events/${id}`);
+};
+
+export const joinEvent = async (id: string): Promise<void> => {
+    await api.post(`/events/${id}/join`);
+};
+
+export const leaveEvent = async (id: string): Promise<void> => {
+    await api.delete(`/events/${id}/join`);
 };

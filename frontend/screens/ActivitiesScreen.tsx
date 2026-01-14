@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, AlertCircle, MapPin, Video, Kanban, Plus } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, MapPin, Video, Kanban, Plus, Users, UserCheck, UserPlus } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
-import { getEvents, Event } from '../services/event.service';
+import { getEvents, joinEvent, leaveEvent, Event } from '../services/event.service';
 import { Skeleton } from '../components/Skeleton';
+import toast from 'react-hot-toast';
 
 const ActivitiesScreen = () => {
   const navigate = useNavigate();
@@ -42,6 +43,23 @@ const ActivitiesScreen = () => {
     fetchData();
     fetchEvents();
   }, []);
+
+  const handleToggleParticipation = async (eventId: string, isParticipating: boolean) => {
+    try {
+      if (isParticipating) {
+        await leaveEvent(eventId);
+        toast.success('Participação cancelada.');
+      } else {
+        await joinEvent(eventId);
+        toast.success('Participação confirmada! 🎉');
+      }
+      // Refresh events
+      const data = await getEvents();
+      setEvents(data);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erro ao atualizar participação.');
+    }
+  };
 
 
   return (
@@ -145,6 +163,8 @@ const ActivitiesScreen = () => {
                 const eventDate = new Date(event.date);
                 const day = eventDate.getDate();
                 const month = eventDate.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+                const isParticipating = event.participants?.some(p => p.userId === user?.id) || false;
+                const participantCount = event.participants?.length || 0;
 
                 return (
                   <div key={event.id} className="bg-white dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 group hover:border-primary/30 transition-colors">
@@ -168,7 +188,7 @@ const ActivitiesScreen = () => {
                         <h4 className="font-bold text-secondary dark:text-white mb-1 group-hover:text-primary transition-colors">{event.title}</h4>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{event.description}</p>
 
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
                           <div className="flex items-center gap-1">
                             <Clock size={12} /> {event.time}
                           </div>
@@ -178,7 +198,31 @@ const ActivitiesScreen = () => {
                               {event.location}
                             </div>
                           )}
+                          <div className="flex items-center gap-1">
+                            <Users size={12} /> {participantCount} participante{participantCount !== 1 ? 's' : ''}
+                          </div>
                         </div>
+
+                        {/* Botão de participação */}
+                        <button
+                          onClick={() => handleToggleParticipation(event.id, isParticipating)}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${isParticipating
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300'
+                              : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
+                            }`}
+                        >
+                          {isParticipating ? (
+                            <>
+                              <UserCheck size={14} />
+                              Participando
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus size={14} />
+                              Participar
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>

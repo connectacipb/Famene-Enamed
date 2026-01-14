@@ -9,6 +9,13 @@ export const getEvents = async (req: Request, res: Response, next: NextFunction)
             include: {
                 createdBy: {
                     select: { id: true, name: true, avatarColor: true }
+                },
+                participants: {
+                    include: {
+                        user: {
+                            select: { id: true, name: true, avatarColor: true }
+                        }
+                    }
                 }
             }
         });
@@ -102,6 +109,72 @@ export const deleteEvent = async (req: Request, res: Response, next: NextFunctio
         });
 
         res.json({ message: 'Evento excluído com sucesso.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const joinEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const userId = (req as any).user?.userId;
+
+        // Check if event exists
+        const event = await prisma.event.findUnique({
+            where: { id }
+        });
+
+        if (!event) {
+            return res.status(404).json({ message: 'Evento não encontrado.' });
+        }
+
+        // Check if already participating
+        const existing = await prisma.eventParticipant.findUnique({
+            where: {
+                userId_eventId: { userId, eventId: id }
+            }
+        });
+
+        if (existing) {
+            return res.status(400).json({ message: 'Você já está participando deste evento.' });
+        }
+
+        await prisma.eventParticipant.create({
+            data: {
+                userId,
+                eventId: id
+            }
+        });
+
+        res.json({ message: 'Participação confirmada com sucesso!' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const leaveEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const userId = (req as any).user?.userId;
+
+        // Check if participating
+        const existing = await prisma.eventParticipant.findUnique({
+            where: {
+                userId_eventId: { userId, eventId: id }
+            }
+        });
+
+        if (!existing) {
+            return res.status(400).json({ message: 'Você não está participando deste evento.' });
+        }
+
+        await prisma.eventParticipant.delete({
+            where: {
+                userId_eventId: { userId, eventId: id }
+            }
+        });
+
+        res.json({ message: 'Participação cancelada.' });
     } catch (error) {
         next(error);
     }

@@ -34,6 +34,7 @@ model User {
   tier             Tier              @relation(fields: [tierId], references: [id])
   userAchievements UserAchievement[]
   createdEvents    Event[]           @relation("CreatedEvents")
+  eventParticipations EventParticipant[]
 }
 
 model Project {
@@ -219,15 +220,27 @@ enum EventType {
 }
 
 model Event {
-  id          String    @id @default(uuid())
-  title       String
-  type        EventType
-  date        DateTime
-  time        String
-  location    String?
-  description String?
-  createdById String
-  createdBy   User      @relation("CreatedEvents", fields: [createdById], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id           String             @id @default(uuid())
+  title        String
+  type         EventType
+  date         DateTime
+  time         String
+  location     String?
+  description  String?
+  createdById  String
+  createdBy    User               @relation("CreatedEvents", fields: [createdById], references: [id])
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  participants EventParticipant[]
+}
+
+model EventParticipant {
+  id        String   @id @default(uuid())
+  userId    String
+  eventId   String
+  user      User     @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
+  joinedAt  DateTime @default(now())
+
+  @@unique([userId, eventId])
 }
