@@ -7,6 +7,7 @@ export const getProjects = async (req: Request, res: Response, next: NextFunctio
         const projects = await prisma.project.findMany({
             include: {
                 members: true,
+                leader: { select: { name: true } },
                 tasks: { select: { status: true } }, // To calculate progress
             },
         });
@@ -94,6 +95,10 @@ export const getProjectDetails = async (req: Request, res: Response, next: NextF
         const project = await prisma.project.findUnique({
             where: { id },
             include: { members: { include: { user: { select: { id: true, name: true, avatarColor: true } } } } }
+            include: {
+                members: { include: { user: { select: { id: true, name: true, avatarColor: true } } } },
+                leader: { select: { id: true, name: true, avatarColor: true } }
+            }
         });
         if (!project) return res.status(404).json({ message: 'Project not found' });
         res.json(project);
