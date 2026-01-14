@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, AlertCircle, MapPin, Video, Kanban, Plus, Users, UserCheck, UserPlus } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, MapPin, Video, Kanban, Plus, Users, UserCheck, UserPlus, Edit2, Trash2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
-import { getEvents, joinEvent, leaveEvent, Event } from '../services/event.service';
+import { getEvents, joinEvent, leaveEvent, deleteEvent, Event } from '../services/event.service';
 import { Skeleton } from '../components/Skeleton';
 import toast from 'react-hot-toast';
 
@@ -58,6 +58,19 @@ const ActivitiesScreen = () => {
       setEvents(data);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Erro ao atualizar participação.');
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este evento?')) return;
+
+    try {
+      await deleteEvent(eventId);
+      toast.success('Evento excluído com sucesso.');
+      const data = await getEvents();
+      setEvents(data);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erro ao excluir evento.');
     }
   };
 
@@ -207,8 +220,8 @@ const ActivitiesScreen = () => {
                         <button
                           onClick={() => handleToggleParticipation(event.id, isParticipating)}
                           className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${isParticipating
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300'
-                              : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300'
+                            : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
                             }`}
                         >
                           {isParticipating ? (
@@ -223,6 +236,26 @@ const ActivitiesScreen = () => {
                             </>
                           )}
                         </button>
+
+                        {/* Botões de editar e deletar - apenas para criador */}
+                        {event.createdById === user?.id && (
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() => navigate(`/eventos/editar/${event.id}`)}
+                              className="px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-300 transition-all"
+                            >
+                              <Edit2 size={12} />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleDeleteEvent(event.id)}
+                              className="px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-300 transition-all"
+                            >
+                              <Trash2 size={12} />
+                              Excluir
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

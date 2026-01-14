@@ -53,6 +53,11 @@ export const getEventById = async (id: string): Promise<Event> => {
     return response.data;
 };
 
+export const updateEvent = async (id: string, data: Partial<CreateEventData>): Promise<Event> => {
+    const response = await api.put(`/events/${id}`, data);
+    return response.data;
+};
+
 export const deleteEvent = async (id: string): Promise<void> => {
     await api.delete(`/events/${id}`);
 };

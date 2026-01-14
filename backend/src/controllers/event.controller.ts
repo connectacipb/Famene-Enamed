@@ -85,6 +85,61 @@ export const getEventById = async (req: Request, res: Response, next: NextFuncti
     }
 };
 
+export const updateEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { title, type, date, time, location, description } = req.body;
+        const userId = (req as any).user?.userId;
+        const userRole = (req as any).user?.role;
+
+        const event = await prisma.event.findUnique({
+            where: { id }
+        });
+
+        if (!event) {
+            return res.status(404).json({ message: 'Evento não encontrado.' });
+        }
+
+        // Only creator or admin can update
+        if (event.createdById !== userId && userRole !== 'ADMIN') {
+            return res.status(403).json({ message: 'Você não tem permissão para editar este evento.' });
+        }
+
+        // Validate event type if provided
+        if (type && !Object.values(EventType).includes(type)) {
+            return res.status(400).json({ message: 'Tipo de evento inválido.' });
+        }
+
+        const updatedEvent = await prisma.event.update({
+            where: { id },
+            data: {
+                ...(title && { title }),
+                ...(type && { type: type as EventType }),
+                ...(date && { date: new Date(date) }),
+                ...(time && { time }),
+                ...(location !== undefined && { location }),
+                ...(description !== undefined && { description }),
+            },
+            include: {
+                createdBy: {
+                    select: { id: true, name: true, avatarColor: true }
+                },
+                participants: {
+                    include: {
+                        user: {
+                            select: { id: true, name: true, avatarColor: true }
+                        }
+                    }
+                }
+            }
+        });
+
+        res.json(updatedEvent);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const deleteEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;

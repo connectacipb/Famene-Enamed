@@ -46,6 +46,7 @@ const App = () => {
           <Route path="/new-project" element={<NewProjectScreen />} />
           <Route path="/join-project" element={<JoinProjectScreen />} />
           <Route path="/eventos/novo" element={<NewEventScreen />} />
+          <Route path="/eventos/editar/:id" element={<NewEventScreen />} />
         </Route>
       </Routes>
     </HashRouter>

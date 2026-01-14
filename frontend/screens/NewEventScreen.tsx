@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Type, AlignLeft, ArrowLeft, Rocket, Tag } from 'lucide-react';
-import { createEvent } from '../services/event.service';
+import { createEvent, updateEvent, getEventById } from '../services/event.service';
 import toast from 'react-hot-toast';
 
 const EVENT_TYPES = [
@@ -12,6 +12,8 @@ const EVENT_TYPES = [
 
 const NewEventScreen = () => {
     const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
+    const isEditing = Boolean(id);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -24,6 +26,31 @@ const NewEventScreen = () => {
     });
 
     const [submitting, setSubmitting] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (id) {
+            setLoading(true);
+            getEventById(id)
+                .then((event) => {
+                    const eventDate = new Date(event.date);
+                    setFormData({
+                        title: event.title,
+                        type: event.type,
+                        date: eventDate.toISOString().split('T')[0],
+                        time: event.time,
+                        endTime: '',
+                        location: event.location || '',
+                        description: event.description || '',
+                    });
+                })
+                .catch(() => {
+                    toast.error('Evento não encontrado.');
+                    navigate('/activities');
+                })
+                .finally(() => setLoading(false));
+        }
+    }, [id, navigate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,19 +67,25 @@ const NewEventScreen = () => {
         setSubmitting(true);
 
         try {
-            await createEvent({
+            const eventData = {
                 title: formData.title,
                 type: formData.type as 'MEETING' | 'WORKSHOP' | 'EVENT',
                 date: formData.date,
                 time: formData.time,
                 location: formData.location || undefined,
                 description: formData.description || undefined,
-            });
+            };
 
-            toast.success('Evento criado com sucesso! 🎉');
+            if (isEditing && id) {
+                await updateEvent(id, eventData);
+                toast.success('Evento atualizado com sucesso! ✅');
+            } else {
+                await createEvent(eventData);
+                toast.success('Evento criado com sucesso! 🎉');
+            }
             navigate('/activities');
         } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Erro ao criar evento.');
+            toast.error(err.response?.data?.message || `Erro ao ${isEditing ? 'atualizar' : 'criar'} evento.`);
         } finally {
             setSubmitting(false);
         }
@@ -80,10 +113,13 @@ const NewEventScreen = () => {
                 <div className="flex-1">
                     <header className="mb-8">
                         <h1 className="text-3xl font-display font-extrabold text-secondary dark:text-white mb-2">
-                            Criar Novo Evento
+                            {isEditing ? 'Editar Evento' : 'Criar Novo Evento'}
                         </h1>
                         <p className="text-gray-600 dark:text-gray-300">
-                            Organize reuniões, workshops e eventos para a comunidade Connecta.
+                            {isEditing
+                                ? 'Atualize as informações do evento.'
+                                : 'Organize reuniões, workshops e eventos para a comunidade Connecta.'
+                            }
                         </p>
                     </header>
 
@@ -212,7 +248,10 @@ const NewEventScreen = () => {
                                 className="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:bg-sky-500 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Rocket size={20} />
-                                {submitting ? 'Criando...' : 'Criar Evento'}
+                                {submitting
+                                    ? (isEditing ? 'Salvando...' : 'Criando...')
+                                    : (isEditing ? 'Salvar Alterações' : 'Criar Evento')
+                                }
                             </button>
                         </div>
                     </form>
