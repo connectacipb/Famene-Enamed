@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import prisma from '../utils/prisma';
 import { Role, TaskStatus } from '@prisma/client';
 
+import { createNewProject, addMemberToProject } from '../services/project.service';
+
 export const getProjects = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const projects = await prisma.project.findMany({
@@ -30,21 +32,19 @@ export const getProjects = async (req: Request, res: Response, next: NextFunctio
 
 export const createProject = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log('[CONTROLLER] createProject hit');
         const { name, description, category, coverUrl } = req.body;
-        const userId = (req as any).user?.userId;
+        const userId = req.user!.userId;
 
-        const project = await prisma.project.create({
-            data: {
-                title: name,
-                description,
-                category,
-                coverUrl,
-                leaderId: userId,
-                members: {
-                    create: { userId: userId } // Add creator as member
-                }
-            }
-        });
+        const project = await createNewProject({
+            title: name,
+            description,
+            category,
+            coverUrl,
+            leaderId: userId,
+            memberIds: [userId]
+        }, userId);
+
         res.status(201).json(project);
     } catch (error) {
         next(error);
@@ -65,13 +65,11 @@ export const uploadProjectCover = async (req: Request, res: Response, next: Next
 export const joinProject = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const userId = (req as any).user?.userId;
+        console.log(`[CONTROLLER] joinProject hit for id: ${id}`);
+        const userId = req.user!.userId;
+        const userRole = req.user!.role;
 
-        // Check if already member
-        const existing = await prisma.projectMember.findFirst({
-            where: { projectId: id, userId }
-        });
-
+        await addMemberToProject(id, { userId }, userId, userRole);
         if (existing) {
             return res.status(400).json({ message: 'Already a member' });
         }
@@ -94,7 +92,7 @@ export const getProjectDetails = async (req: Request, res: Response, next: NextF
         const { id } = req.params;
         const project = await prisma.project.findUnique({
             where: { id },
-            include: { members: { include: { user: { select: { id: true, name: true, avatarColor: true } } } } }
+           
             include: {
                 members: { include: { user: { select: { id: true, name: true, avatarColor: true } } } },
                 leader: { select: { id: true, name: true, avatarColor: true } }

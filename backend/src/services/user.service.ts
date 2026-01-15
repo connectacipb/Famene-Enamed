@@ -4,6 +4,7 @@ import { findActivityLogsByUserId, createActivityLog } from '../repositories/act
 import { hashPassword } from '../utils/bcrypt';
 import { UpdateUserInput, UpdateUserPointsInput } from '../schemas/user.schema';
 import { recalcUserTier } from './gamification.service';
+import { checkAndAwardAchievements } from './achievement.service';
 import prisma from '../utils/prisma';
 
 export const getMyProfile = async (userId: string) => {
@@ -88,6 +89,13 @@ export const updateUserDetails = async (userId: string, data: UpdateUserInput, r
     data.password = await hashPassword(data.password);
   }
 
+  return prisma.$transaction(async (tx) => {
+    const updatedUser = await updateUser(userId, data, tx);
+    console.log(`[TRIGGER] User updated, checking achievements for ${userId}`);
+    await checkAndAwardAchievements(userId, tx);
+    const { passwordHash, ...userWithoutHash } = updatedUser;
+    return userWithoutHash;
+  });
   try {
     const updatedUser = await updateUser(userId, data);
     const { passwordHash, ...userWithoutHash } = updatedUser;
