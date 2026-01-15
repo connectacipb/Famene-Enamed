@@ -327,7 +327,7 @@ const ActivitiesScreen = () => {
                           {/* Botões de editar e deletar - apenas para criador */}
                           {event.createdById === user?.id && (
                             <>
-                              <div className="flex gap-2 mt-3 p-2 bg-gray-50 dark:bg-white/5 rounded-lg">
+                              <div className="flex flex-wrap gap-2 mt-3 p-2 bg-gray-50 dark:bg-white/5 rounded-lg">
                                 <button
                                   onClick={() => openEditModal(event.id)}
                                   className="px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-primary transition-all shadow-sm"
@@ -406,6 +406,7 @@ const ActivitiesScreen = () => {
             <button
               onClick={openNewEventModal}
               className="w-full mt-4 px-4 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:bg-sky-500 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+              style={{ marginBottom: 'calc(env(safe-area-inset-bottom, 20px) + 30px)' }}
             >
               <Plus size={18} />
               Criar Novo Evento
