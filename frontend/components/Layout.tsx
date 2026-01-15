@@ -178,7 +178,7 @@ const Layout = () => {
                         {!loading && user && (
                             <div className="hidden sm:flex flex-col animate-in fade-in slide-in-from-left-4 duration-500">
                                 <h1 className="text-xl font-display font-bold text-secondary dark:text-white">
-                                    Olá, <span className="text-primary">{user.name?.split(' ')[0]}</span>! 
+                                    Olá, <span className="text-primary">{user.name?.split(' ')[0]}</span>!
                                 </h1>
                             </div>
                         )}
