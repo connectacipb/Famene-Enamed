@@ -201,7 +201,6 @@ const ActivitiesScreen = () => {
               ) : deadlines.length === 0 ? (
                 <div className="text-center py-10 text-gray-400 bg-white dark:bg-surface-dark rounded-2xl border border-gray-100 dark:border-gray-800">
                   <p>Nenhuma tarefa pendente encontrada.</p>
-                  <p className="text-xs mt-2">Isso pode ocorrer se você não tiver tarefas ou se o endpoint /tasks/my-tasks ainda não estiver ativo.</p>
                 </div>
               ) : deadlines.map((item: any) => (
                 <div key={item.id} className="bg-white dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-md transition-shadow relative overflow-hidden group">
@@ -415,11 +414,11 @@ const ActivitiesScreen = () => {
 
         </div>
       </div>
-      
+
       {/* New Event Modal */}
-      <NewEventModal 
-        isOpen={isEventModalOpen} 
-        onClose={() => setIsEventModalOpen(false)} 
+      <NewEventModal
+        isOpen={isEventModalOpen}
+        onClose={() => setIsEventModalOpen(false)}
         eventId={editingEventId}
         onSuccess={loadEvents}
       />
