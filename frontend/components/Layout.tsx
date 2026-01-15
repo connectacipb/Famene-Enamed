@@ -62,6 +62,29 @@ const SidebarItem = ({ to, icon: Icon, label }: { to: string; icon: any; label: 
     );
 };
 
+const BottomNavItem = ({ to, icon: Icon, label }: { to: string; icon: any; label: string }) => {
+    const location = useLocation();
+    const isActive = location.pathname === to;
+
+    return (
+        <Link
+            to={to}
+            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all duration-200 relative
+          ${isActive
+                    ? 'text-primary'
+                    : 'text-gray-400 dark:text-gray-500 hover:text-primary'
+                }
+      `}
+        >
+            <Icon size={20} className={`${isActive ? 'scale-110 mb-0.5' : ''} transition-transform`} />
+            <span className={`text-[9px] font-bold uppercase tracking-tighter ${isActive ? 'opacity-100' : 'opacity-70'}`}>{label}</span>
+            {isActive && (
+                <span className="absolute top-1 right-1/4 w-1.5 h-1.5 bg-primary rounded-full animate-pulse border border-white dark:border-surface-dark"></span>
+            )}
+        </Link>
+    );
+};
+
 const Layout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [user, setUser] = useState<any>(null);
@@ -194,6 +217,15 @@ const Layout = () => {
                 <main className="bg-background-light dark:bg-background-dark pb-safe">
                     <Outlet />
                 </main>
+
+                {/* Mobile Bottom Navigation */}
+                <nav className="md:hidden h-16 bg-surface-light dark:bg-surface-dark border-t border-gray-200 dark:border-gray-800 flex items-center justify-around px-2 z-40 pb-safe shadow-[0_-4px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_12px_rgba(0,0,0,0.2)]">
+                    <BottomNavItem to="/dashboard" icon={LayoutDashboard} label="Home" />
+                    <BottomNavItem to="/projects" icon={FolderOpen} label="Projetos" />
+                    <BottomNavItem to="/ranking" icon={Trophy} label="Ranking" />
+                    <BottomNavItem to="/activities" icon={Calendar} label="Atividades" />
+                    <BottomNavItem to="/profile" icon={User} label="Perfil" />
+                </nav>
             </div>
         </div>
     );
