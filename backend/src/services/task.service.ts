@@ -98,11 +98,12 @@ export const updateTaskDetails = async (id: string, data: UpdateTaskInput, reque
     throw { statusCode: 404, message: 'Task\'s project not found.' };
   }
 
-  const isMember = await isUserProjectMember(task.projectId, requestingUserId);
-  const isAuthorized = requestingUserRole === Role.ADMIN || project.leaderId === requestingUserId || task.assignedToId === requestingUserId || isMember;
-  if (!isAuthorized) {
-    throw { statusCode: 403, message: 'You are not authorized to update this task.' };
-  }
+  /* Permissão removida conforme solicitação: qualquer usuário autenticado pode editar */
+  // const isMember = await isUserProjectMember(task.projectId, requestingUserId);
+  // const isAuthorized = requestingUserRole === Role.ADMIN || project.leaderId === requestingUserId || task.assignedToId === requestingUserId || isMember;
+  // if (!isAuthorized) {
+  //   throw { statusCode: 403, message: 'You are not authorized to update this task.' };
+  // }
 
   if (data.assignedToId && data.assignedToId !== task.assignedToId) {
     const assignedToUser = await findUserById(data.assignedToId);
@@ -156,13 +157,14 @@ export const moveTaskStatus = async (id: string, data: MoveTaskInput, requesting
 
   const isMember = await isUserProjectMember(task.projectId, requestingUserId);
 
-  if (!isAdmin && !isProjectLeader && !isAssignedUser && !isMember) {
-    throw { statusCode: 403, message: 'You are not authorized to move this task.' };
-  }
+  /* Permissão removida conforme solicitação: qualquer usuário autenticado pode mover */
+  // if (!isAdmin && !isProjectLeader && !isAssignedUser && !isMember) {
+  //   throw { statusCode: 403, message: 'You are not authorized to move this task.' };
+  // }
 
-  if (data.newStatus === TaskStatus.done && !isAdmin && !isProjectLeader && !isMember) {
-    throw { statusCode: 403, message: 'Only project members, leaders or administrators can mark tasks as DONE.' };
-  }
+  // if (data.newStatus === TaskStatus.done && !isAdmin && !isProjectLeader && !isMember) {
+  //   throw { statusCode: 403, message: 'Only project members, leaders or administrators can mark tasks as DONE.' };
+  // }
 
   if (task.status === data.newStatus) {
     return task;

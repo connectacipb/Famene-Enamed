@@ -147,7 +147,7 @@ const Layout = () => {
                                 <>
                                     <p className="text-sm font-bold text-secondary dark:text-white truncate">{user?.name || 'Visitante'}</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                        {typeof user?.tier === 'object' ? user.tier.name : (user?.tier || 'Iniciante')} • {user?.connectaPoints || 0} XP
+                                        {typeof user?.tier === 'object' ? user.tier.name : (user?.tier || 'Iniciante')} • {user?.connectaPoints || 0} 🪙
                                     </p>
                                 </>
                             )}

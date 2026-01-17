@@ -278,7 +278,7 @@ const NewTaskScreen = () => {
                     >
                       <div className="text-xs font-bold uppercase tracking-wider mb-1 text-gray-500 dark:text-gray-400">{level.label}</div>
                       <div className={`text-lg font-black ${taskLevel === level.id ? 'text-primary' : 'text-gray-400'}`}>
-                        {level.pts} XP
+                        {level.pts} 🪙
                       </div>
                       {taskLevel === level.id && (
                         <div className="absolute top-0 right-0 p-1">

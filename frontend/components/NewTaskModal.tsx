@@ -242,11 +242,11 @@ const NewTaskModal = ({ isOpen, onClose, projectId: defaultProjectId, initialCol
                     <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                       <BarChart3 size={16} className="text-primary" /> Nível da Tarefa
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                    <div className="grid grid-cols-3 gap-3 mb-4">
                       {[
-                        { id: 'basic', label: 'Básica (lvl 1)', pts: 50 },
-                        { id: 'medium', label: 'Média (lvl 2)', pts: 150 },
-                        { id: 'large', label: 'Grande (lvl 3)', pts: 300 }
+                        { id: 'basic', label: 'Básica', pts: 50 },
+                        { id: 'medium', label: 'Média', pts: 100 },
+                        { id: 'large', label: 'Grande', pts: 200 }
                       ].map((level) => (
                         <button
                           key={level.id}
@@ -260,7 +260,7 @@ const NewTaskModal = ({ isOpen, onClose, projectId: defaultProjectId, initialCol
                         >
                           <div className="text-xs font-bold uppercase tracking-wider mb-1 text-gray-500 dark:text-gray-400">{level.label}</div>
                           <div className={`text-lg font-black ${taskLevel === level.id ? 'text-primary' : 'text-gray-400'}`}>
-                            {level.pts} XP
+                            {level.pts} 🪙
                           </div>
                           {taskLevel === level.id && (
                             <div className="absolute top-0 right-0 p-1">
@@ -273,15 +273,15 @@ const NewTaskModal = ({ isOpen, onClose, projectId: defaultProjectId, initialCol
                     
                     <div className="flex items-center gap-2 text-sm text-sky-700 dark:text-sky-300 bg-white dark:bg-surface-dark p-3 rounded-lg border border-sky-100 dark:border-sky-800/50">
                        <Zap size={18} className="text-yellow-500 fill-yellow-500" />
-                       <span>Esta tarefa gerará aproximadamente <strong>{points} Connecta Points</strong> para o responsável.</span>
+                       <span>Esta tarefa gerará Connecta Points para o responsável.</span>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-6">
                     {/* Estimated Time */}
                     <div>
                       <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                        <Clock size={16} className="text-primary" /> Tempo Estimado (horas)
+                        <Clock size={16} className="text-primary" /> Duração (h)
                       </label>
                       <input 
                         type="number" 
@@ -297,7 +297,7 @@ const NewTaskModal = ({ isOpen, onClose, projectId: defaultProjectId, initialCol
                     {/* Deadline */}
                     <div>
                       <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                        <Calendar size={16} className="text-primary" /> Prazo de Entrega
+                        <Calendar size={16} className="text-primary" /> Prazo
                       </label>
                       <input 
                         type="date"

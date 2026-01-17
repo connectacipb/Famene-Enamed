@@ -178,7 +178,7 @@ const ProfileScreen = () => {
                         <div className="mt-1 mb-4 max-w-sm mx-auto md:mx-0">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[12px] font-bold uppercase tracking-wider text-slate-400 mb-1 gap-1 sm:gap-0">
                                 <span>Progresso para Nível{' '}{(user?.level || 1) + 1}:</span>
-                                <span className="text-primary text-xs">{user?.connectaPoints || 0} / {((user?.level || 1) * 1000)} XP</span>
+                                <span className="text-primary text-xs">{user?.connectaPoints || 0} / {((user?.level || 1) * 1000)} 🪙</span>
                             </div>
                             <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-700/50 shadow-inner">
                                 <div
@@ -333,8 +333,8 @@ const ProfileScreen = () => {
                                 <Zap size={24} />
                             </div>
                             <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">XP Atual</p>
-                                <p className="text-xl font-bold text-slate-900 dark:text-white">{user?.connectaPoints || 0} XP</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">🪙 Atual</p>
+                                <p className="text-xl font-bold text-slate-900 dark:text-white">{user?.connectaPoints || 0} 🪙</p>
                             </div>
                         </div>
 

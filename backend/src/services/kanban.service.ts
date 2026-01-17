@@ -78,8 +78,9 @@ export const moveTaskService = async (taskId: string, columnId: string, userId: 
 
     if (!task) throw { statusCode: 404, message: 'Task not found' };
 
-    const isMember = task.project.members.some(m => m.userId === userId);
-    if (!isMember && !isAdmin) throw { statusCode: 403, message: 'Not authorized' };
+    /* Permissão removida conforme solicitação: qualquer usuário autenticado pode mover */
+    // const isMember = task.project.members.some(m => m.userId === userId);
+    // if (!isMember && !isAdmin) throw { statusCode: 403, message: 'Not authorized' };
 
     const column = await prisma.kanbanColumn.findUnique({ where: { id: columnId } });
     if (!column) throw { statusCode: 404, message: 'Column not found' };

@@ -52,8 +52,8 @@ const LoginScreen = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) {
-      toast.error('A senha deve ter pelo menos 8 caracteres.');
+    if (password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
     if (password !== confirmPassword) {
@@ -79,8 +79,8 @@ const LoginScreen = () => {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 8) {
-      toast.error('A nova senha deve ter pelo menos 8 caracteres.');
+    if (newPassword.length < 6) {
+      toast.error('A nova senha deve ter pelo menos 6 caracteres.');
       return;
     }
     setLoading(true);
@@ -238,7 +238,7 @@ const LoginScreen = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Senha</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Senha (mínimo 6 dígitos)</label>
                   <input
                     className="block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-surface-dark dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm py-3 px-4"
                     type="password"

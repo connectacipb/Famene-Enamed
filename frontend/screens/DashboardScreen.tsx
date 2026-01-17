@@ -93,7 +93,7 @@ const DashboardScreen = () => {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Meus Pontos</p>
-                <p className="text-4xl font-display font-black text-primary">{user.points} <span className="text-lg text-gray-400 font-bold">XP</span></p>
+                <p className="text-4xl font-display font-black text-primary">{user.points} <span className="text-lg text-gray-400 font-bold">🪙</span></p>
               </div>
               <div className="w-14 h-14 bg-gradient-to-br from-yellow-300 to-yellow-600 rounded-full flex items-center justify-center shadow-lg shadow-yellow-500/30">
                 <Trophy className="text-white" size={28} />
@@ -106,7 +106,7 @@ const DashboardScreen = () => {
               <div className="h-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-primary to-sky-500 rounded-full shadow-[0_0_10px_rgba(29,78,216,0.5)]" style={{ width: `${user.tierProgress}%` }}></div>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-right mt-1">Faltam {user.nextTierPoints} XP para o próximo nível</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-right mt-1">Faltam {user.nextTierPoints} 🪙 para o próximo nível</p>
             </div>
           </div>
         </div>

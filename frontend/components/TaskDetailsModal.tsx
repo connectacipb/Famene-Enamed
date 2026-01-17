@@ -437,7 +437,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ isOpen, onClose, ta
                             <div>
                                 <label className="text-xs font-bold text-gray-500 uppercase mb-2 block flex items-center gap-1"><Zap size={12} /> Recompensa</label>
                                 <div className="text-xl font-black text-secondary dark:text-white flex items-center gap-2">
-                                    {points} <span className="text-xs font-bold text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 rounded">XP</span>
+                                    {points} <span className="text-xs font-bold text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 rounded">🪙</span>
                                 </div>
                             </div>
                             <div className="h-px bg-gray-100 dark:bg-gray-700"></div>
