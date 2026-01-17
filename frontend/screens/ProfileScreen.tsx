@@ -14,7 +14,8 @@ import {
     Star,
     Code,
     Camera,
-    X
+    X,
+    ArrowRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getProfile, updateUser, uploadAvatar } from '../services/user.service';
@@ -306,7 +307,7 @@ const ProfileScreen = () => {
                                 className="px-8 py-2.5 rounded-lg bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:bg-blue-600 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 disabled:opacity-50"
                             >
                                 {saving ? <Loader className="animate-spin" size={28} /> : <Save size={28} />}
-                                Salvar Alterações
+                                Salvar
                             </button>
                         </div>
                     </form>
@@ -353,11 +354,18 @@ const ProfileScreen = () => {
                     <div>
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Projetos atuais: </h3>
-                            <button onClick={() => navigate('/projects')} className="text-sm text-primary hover:text-sky-400 font-bold">Ver todos</button>
+                            <button 
+                                onClick={() => navigate('/projects')} 
+                                className="hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-white transition-all duration-300 group shadow-sm active:scale-95 min-w-[120px]"
+                            >
+                                Ver todos
+                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                            </button>
                         </div>
 
                         {user?.memberOfProjects && user.memberOfProjects.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {user.memberOfProjects.map((membership: any) => (
                                     <div key={membership.project.id} className="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col group cursor-pointer" onClick={() => navigate(`/project-details/${membership.project.id}`)}>
                                         <div className="h-32 md:h-40 bg-slate-100 dark:bg-slate-800 relative flex items-center justify-center overflow-hidden">
@@ -385,6 +393,18 @@ const ProfileScreen = () => {
                                     </div>
                                 ))}
                             </div>
+                            
+                            {/* Mobile View All Button */}
+                            <div className="mt-6 sm:hidden">
+                                <button 
+                                    onClick={() => navigate('/projects')} 
+                                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-white transition-all duration-300 group shadow-sm active:scale-95"
+                                >
+                                    Ver todos
+                                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </div>
+                            </>
                         ) : (
                             <div className="p-12 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl text-center">
                                 <User size={48} className="text-slate-400 mx-auto mb-4 opacity-50" />

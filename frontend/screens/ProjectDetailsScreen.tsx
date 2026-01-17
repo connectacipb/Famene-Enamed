@@ -7,10 +7,9 @@ import { getProfile } from '../services/user.service';
 import { uploadProjectCover, updateProject } from '../services/project.service';
 import { useProjectDetails } from '../hooks/useProjects';
 import { Skeleton } from '../components/Skeleton';
-import NewTaskModal from '../components/NewTaskModal';
+import TaskModal from '../components/TaskModal';
 import { Camera, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
-import TaskDetailsModal from '../components/TaskDetailsModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 
 const ProjectDetailsScreen = () => {
@@ -646,10 +645,6 @@ const ProjectDetailsScreen = () => {
                 {/* Toolbar */}
                 <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
                     <div className="flex space-x-2">
-                        <button className="px-4 py-2 bg-white dark:bg-surface-dark text-primary font-bold rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex items-center gap-2">
-                            <span className="material-icons text-sm">view_kanban</span>
-                            Quadro
-                        </button>
                         {/* Mobile only: Nova Tarefa ao lado do Quadro */}
                         <button
                             onClick={() => { setInitialColumnId(undefined); setIsNewTaskModalOpen(true); }}
@@ -928,18 +923,13 @@ const ProjectDetailsScreen = () => {
                     </StrictModeDroppable>
                 </DragDropContext>
             </div>
-            <NewTaskModal
-                isOpen={isNewTaskModalOpen}
-                onClose={() => setIsNewTaskModalOpen(false)}
+            <TaskModal
+                isOpen={isNewTaskModalOpen || isTaskDetailsOpen}
+                onClose={() => { setIsNewTaskModalOpen(false); setIsTaskDetailsOpen(false); setSelectedTask(null); }}
                 projectId={id}
                 initialColumnId={initialColumnId}
                 projectMembers={project?.members}
                 onSuccess={fetchKanban}
-            />
-
-            <TaskDetailsModal
-                isOpen={isTaskDetailsOpen}
-                onClose={() => setIsTaskDetailsOpen(false)}
                 task={selectedTask}
             />
 
@@ -948,7 +938,7 @@ const ProjectDetailsScreen = () => {
                 onClose={() => setColumnToDelete(null)}
                 onConfirm={confirmDeleteColumn}
                 title="Excluir Coluna"
-                message="Tem certeza que deseja excluir esta coluna? Esta ação não pode ser desfeita e apenas colunas vazias podem ser removidas."
+                message="Apenas colunas vazias podem ser removidas."
                 confirmText="Sim, excluir"
                 type="danger"
             />

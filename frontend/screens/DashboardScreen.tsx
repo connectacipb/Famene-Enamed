@@ -34,13 +34,17 @@ const DashboardScreen = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-10">
           <section>
-            <div className="flex justify-between items-end mb-6">
-              <Skeleton width="40%" height="32px" />
-              <Skeleton width="100px" height="20px" />
+            <div className="flex items-center justify-between mb-6">
+              <Skeleton width="40%" height="32px" className="rounded-lg" />
+              <Skeleton width="100px" height="36px" className="hidden sm:block rounded-xl" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Skeleton height="200px" className="rounded-2xl" />
               <Skeleton height="200px" className="rounded-2xl" />
+            </div>
+            {/* Mobile View All Skeleton */}
+            <div className="mt-6 sm:hidden">
+              <Skeleton height="48px" className="w-full rounded-xl" />
             </div>
           </section>
         </div>
@@ -116,12 +120,18 @@ const DashboardScreen = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-10">
           <section>
-            <div className="flex justify-between items-end mb-6">
+            <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-display font-bold text-secondary dark:text-white flex items-center gap-2">
                 <Folder className="text-primary" size={24} />
                 Projetos que você participa
               </h2>
-              <Link to="/projects" className="text-sm font-bold text-primary hover:underline">Ver todos</Link>
+              <Link 
+                to="/projects" 
+                className="hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-white transition-all duration-300 group shadow-sm active:scale-95 min-w-[120px]"
+              >
+                Ver todos
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {projects.length === 0 ? (
@@ -156,6 +166,16 @@ const DashboardScreen = () => {
                 </div>
               ))}
             </div>
+            {/* Mobile View All Button */}
+            <div className="mt-6 sm:hidden">
+              <Link 
+                to="/projects" 
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-white transition-all duration-300 group shadow-sm active:scale-95"
+              >
+                Ver todos
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
           </section>
         </div>
 
@@ -168,7 +188,36 @@ const DashboardScreen = () => {
               {recentActivity.length === 0 ? <p className="text-sm text-gray-500">Nenhuma atividade recente.</p> : recentActivity.map((activity: any) => (
                 <div key={activity.id} className="bg-gray-50 dark:bg-surface-darker p-3 rounded-xl shadow-sm flex items-center gap-3">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">{activity.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {(() => {
+                        const desc = activity.description;
+                        const achievementMatch = desc.match(/^Earned achievement: "(.*)"!$/);
+                        
+                        if (achievementMatch) {
+                          return (
+                            <span>
+                              Você ganhou a conquista <span className="font-bold text-blue-600 dark:text-blue-400">"{achievementMatch[1]}"</span> 🏆
+                            </span>
+                          );
+                        }
+                        
+                        if (desc.startsWith('Completed a task and earned')) {
+                           const points = desc.match(/earned (\d+)/)?.[1];
+                           return `Concluiu uma tarefa e ganhou ${points || ''} pontos.`;
+                        }
+                        
+                        if (desc.startsWith('Achieved new tier:')) {
+                           const tier = desc.match(/tier: (.*)!/)?.[1];
+                           return `Alcançou o nível ${tier || ''}! 🎉`;
+                        }
+                        
+                        if (desc.startsWith('Streak updated:')) {
+                           return 'Sequência diária atualizada!';
+                        }
+                        
+                        return desc;
+                      })()}
+                    </p>
                     <p className="text-xs text-gray-400">{new Date(activity.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>

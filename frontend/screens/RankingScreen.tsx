@@ -6,7 +6,7 @@ import { Skeleton } from '../components/Skeleton';
 
 const FILTERS = [
   { id: 'daily', label: 'Diário' },
-  { id: 'weekly', label: 'Semanal' }, // Changed to match backend usually? Controller has getWeeklyLeaderboard maybe?
+  { id: 'week', label: 'Semanal' },
   { id: 'monthly', label: 'Mensal' },
   { id: 'all', label: 'Global' },
 ];

@@ -289,10 +289,6 @@ const NewTaskScreen = () => {
                   ))}
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-sky-700 dark:text-sky-300 bg-white dark:bg-surface-dark p-3 rounded-lg border border-sky-100 dark:border-sky-800/50">
-                  <Zap size={18} className="text-yellow-500 fill-yellow-500" />
-                  <span>Esta tarefa gerará aproximadamente <strong>{points} Connecta Points</strong> para o responsável.</span>
-                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -343,7 +339,7 @@ const NewTaskScreen = () => {
                 className="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:bg-blue-600 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? <Clock size={20} className="animate-spin" /> : <Check size={20} />}
-                {submitting ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Criar Tarefa')}
+                {submitting ? 'Salvando...' : (isEditing ? 'Salvar' : 'Criar Tarefa')}
               </button>
             </div>
           </form>
