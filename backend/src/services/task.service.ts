@@ -8,15 +8,10 @@ import { addPointsForTaskCompletion, updateStreakForUser } from './gamification.
 import { checkAndAwardAchievements } from './achievement.service';
 import prisma from '../utils/prisma';
 
-const DIFFICULTY_POINTS_MULTIPLIER = 5;
-const POINTS_PER_MINUTE = 0.5;
-
-const calculateTaskPoints = (difficulty: number, estimatedTimeMinutes?: number | null): number => {
-  let totalPoints = difficulty * DIFFICULTY_POINTS_MULTIPLIER;
-  if (estimatedTimeMinutes && estimatedTimeMinutes > 0) {
-    totalPoints += Math.floor(estimatedTimeMinutes * POINTS_PER_MINUTE);
-  }
-  return totalPoints;
+const calculateTaskPoints = (difficulty: number): number => {
+  if (difficulty <= 1) return 50;
+  if (difficulty === 2) return 100;
+  return 200; // Dificuldade 3 ou superior
 };
 
 export const createNewTask = async (data: CreateTaskInput, createdById: string) => {
@@ -44,7 +39,7 @@ export const createNewTask = async (data: CreateTaskInput, createdById: string) 
     }
   }
 
-  const pointsReward = calculateTaskPoints(data.difficulty, data.estimatedTimeMinutes);
+  const pointsReward = calculateTaskPoints(data.difficulty);
 
   const taskResult = await prisma.$transaction(async (tx) => {
     const task = await createTask({
@@ -119,10 +114,8 @@ export const updateTaskDetails = async (id: string, data: UpdateTaskInput, reque
   return prisma.$transaction(async (tx) => {
     const updateData: Prisma.TaskUpdateInput = { ...data };
 
-    if (data.difficulty !== undefined || data.estimatedTimeMinutes !== undefined) {
-      const newDifficulty = data.difficulty !== undefined ? data.difficulty : task.difficulty;
-      const newEstimatedTime = data.estimatedTimeMinutes !== undefined ? data.estimatedTimeMinutes : task.estimatedTimeMinutes;
-      updateData.pointsReward = calculateTaskPoints(newDifficulty, newEstimatedTime);
+    if (data.difficulty !== undefined) {
+      updateData.pointsReward = calculateTaskPoints(data.difficulty);
     }
 
     const updatedTask = await updateTask(id, updateData, tx);

@@ -185,7 +185,10 @@ const Layout = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 relative group">
+                        <button 
+                            onClick={() => navigate('/activities')}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 relative group"
+                        >
                             <Bell size={20} />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border border-white dark:border-surface-dark"></span>
                         </button>

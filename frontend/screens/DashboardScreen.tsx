@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Sun, CheckSquare, Trophy, Code, Megaphone, ArrowRight, Store, Folder } from 'lucide-react';
+import { Sun, CheckSquare, Trophy, Code, Megaphone, ArrowRight, Store, Folder, Star } from 'lucide-react';
 import { getDashboardData } from '../services/dashboard.service';
 import { Skeleton } from '../components/Skeleton';
 
@@ -96,7 +96,7 @@ const DashboardScreen = () => {
           <div className="bg-white/50 dark:bg-black/20 backdrop-blur-md rounded-2xl p-6 w-full lg:w-96 border border-white/40 dark:border-white/10 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Meus Pontos</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Minha Pontuação</p>
                 <p className="text-4xl font-display font-black text-primary">{user.points} <span className="text-lg text-gray-400 font-bold">🪙</span></p>
               </div>
               <div className="w-14 h-14 bg-gradient-to-br from-yellow-300 to-yellow-600 rounded-full flex items-center justify-center shadow-lg shadow-yellow-500/30">
@@ -135,35 +135,57 @@ const DashboardScreen = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {projects.length === 0 ? (
-                <div className="col-span-2 text-center py-10 bg-white dark:bg-surface-dark rounded-2xl border border-gray-100 dark:border-gray-800">
-                  <p className="text-gray-500">Você ainda não participa de nenhum projeto.</p>
-                  <Link to="/projects" className="text-primary font-bold mt-2 inline-block">Procurar Projetos</Link>
+                <div className="col-span-2 text-center py-6 bg-white dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-gray-800">
+                  <p className="text-gray-500 text-sm">Você ainda não participa de nenhum projeto.</p>
+                  <Link to="/projects" className="text-primary font-bold mt-2 inline-block text-sm">Procurar Projetos</Link>
                 </div>
               ) : projects.map((project: any) => (
-                <div key={project.id} className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-md hover:shadow-lg transition-all border border-gray-100 dark:border-gray-800 group relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded-lg">
-                      <Code size={20} />
+                <article key={project.id} onClick={() => navigate(`/project-details/${project.id}`)} className="cursor-pointer bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col h-full group">
+                  <div className="h-28 bg-gray-200 relative overflow-hidden">
+                    {project.coverUrl ? (
+                      <img
+                        src={project.coverUrl}
+                        alt={project.title}
+                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-transparent flex items-center justify-center">
+                        <Star size={32} className="text-primary/20" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div className="absolute bottom-2 left-3 z-20">
+                      <span className="bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">{project.category || 'Geral'}</span>
                     </div>
-                    <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold rounded-lg uppercase">Ativo</span>
                   </div>
-                  <h3 className="text-lg font-bold text-secondary dark:text-white mb-2">{project.title}</h3>
-                  <div className="mb-4">
-                    <div className="flex justify-between text-xs font-semibold mb-1 text-gray-500 dark:text-gray-400">
-                      <span>Progresso</span>
-                      <span>{Math.round(project.progress)}%</span>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-1">
+                      <h4 className="text-sm font-display font-bold text-secondary dark:text-white leading-tight group-hover:text-primary transition-colors">{project.title}</h4>
                     </div>
-                    <div className="h-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${project.progress}%` }}></div>
+                    <p className="text-gray-600 dark:text-gray-400 text-xs line-clamp-2 mb-2">
+                      {project.description}
+                    </p>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      {project.leader?.avatarUrl ? (
+                        <img src={project.leader.avatarUrl} alt={project.leader.name} className="w-5 h-5 rounded-full object-cover border border-primary/20" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[9px] text-primary font-bold border border-primary/20">
+                          {project.leader?.name?.charAt(0) || 'L'}
+                        </div>
+                      )}
+                      <span className="text-[11px] text-gray-500 dark:text-gray-400">Líder: <span className="font-semibold text-gray-700 dark:text-gray-200">{project.leader?.name || 'Desconhecido'}</span></span>
+                    </div>
+                    
+                    <div className="mt-auto pt-2 border-t border-gray-100 dark:border-gray-700">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/project-details/${project.id}`); }}
+                        className="w-full bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold py-1.5 rounded-lg transition-colors text-xs flex items-center justify-center gap-1.5"
+                      >
+                        Acessar <ArrowRight size={14} />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-                    <Link to={`/project-details/${project.id}`} className="text-sm font-bold text-secondary dark:text-white hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-1">
-                      Acessar <ArrowRight size={16} />
-                    </Link>
-                  </div>
-                </div>
+                </article>
               ))}
             </div>
             {/* Mobile View All Button */}
@@ -185,7 +207,7 @@ const DashboardScreen = () => {
           <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-800">
             <h3 className="font-display font-bold text-lg text-secondary dark:text-white mb-4">Atividade Recente</h3>
             <div className="space-y-3">
-              {recentActivity.length === 0 ? <p className="text-sm text-gray-500">Nenhuma atividade recente.</p> : recentActivity.map((activity: any) => (
+              {recentActivity.length === 0 ? <p className="text-sm text-gray-500">Nenhuma atividade recente.</p> : recentActivity.slice(0, 5).map((activity: any) => (
                 <div key={activity.id} className="bg-gray-50 dark:bg-surface-darker p-3 rounded-xl shadow-sm flex items-center gap-3">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -199,6 +221,22 @@ const DashboardScreen = () => {
                               Você ganhou a conquista <span className="font-bold text-blue-600 dark:text-blue-400">"{achievementMatch[1]}"</span> 🏆
                             </span>
                           );
+                        }
+
+                        // Traduções adicionais
+                        const createdTaskMatch = desc.match(/^Created task "(.*)" for project "(.*)"\.$/);
+                        if (createdTaskMatch) {
+                          return `Criou a tarefa "${createdTaskMatch[1]}" no projeto "${createdTaskMatch[2]}".`;
+                        }
+
+                        const assignedTaskMatch = desc.match(/^Assigned task "(.*)" to (.*)\.$/);
+                        if (assignedTaskMatch) {
+                          return `Atribuiu a tarefa "${assignedTaskMatch[1]}" a ${assignedTaskMatch[2]}.`;
+                        }
+
+                        const joinedProjectMatch = desc.match(/^Joined project "(.*)"\.$/);
+                        if (joinedProjectMatch) {
+                          return `Entrou no projeto "${joinedProjectMatch[1]}".`;
                         }
                         
                         if (desc.startsWith('Completed a task and earned')) {

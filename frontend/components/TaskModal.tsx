@@ -5,6 +5,7 @@ import { getComments, createComment, deleteComment } from '../services/comment.s
 import { uploadFile } from '../services/upload.service';
 import { useProjects } from '../hooks/useProjects';
 import { getAllUsers, getProfile } from '../services/user.service';
+import MemberSelect from './MemberSelect';
 import toast from 'react-hot-toast';
 
 interface TaskModalProps {
@@ -371,22 +372,15 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId: defaultProject
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                   <User size={16} className="text-primary" /> Responsável
                 </label>
-                {loadingUsers ? (
-                  <div className="h-12 w-full bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse"></div>
-                ) : (
-                  <select
-                    value={assignedToId}
-                    onChange={(e) => setAssignedToId(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-secondary dark:text-white cursor-pointer appearance-none"
-                  >
-                    <option value="">
-                      {projectMembers ? 'Selecionar membro do projeto...' : 'Atribuir a...'}
-                    </option>
-                    {users.map((u: any) => (
-                      <option key={u.id} value={u.id}>{u.name} {u.role ? `(${u.role})` : ''}</option>
-                    ))}
-                  </select>
-                )}
+                <MemberSelect
+                  members={users}
+                  selectedId={assignedToId}
+                  onChange={setAssignedToId}
+                  loading={loadingUsers}
+                  placeholder={projectMembers ? 'Selecionar membro do projeto...' : 'Atribuir a...'}
+                  allowUnassigned={true}
+                  unassignedLabel="Sem responsável"
+                />
               </div>
             </div>
 

@@ -274,7 +274,7 @@ const RankingScreen = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Meus Pontos</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Minha Pontuação</p>
                     <p className="text-xl font-black">{currentUserRankData.connectaPoints || currentUserRankData.points} 🪙</p>
                   </div>
                 </div>

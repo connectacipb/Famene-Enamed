@@ -6,6 +6,7 @@ import { useProjects } from '../hooks/useProjects';
 import { getAllUsers } from '../services/user.service';
 import { getProjectDetails } from '../services/project.service';
 import { useAuth } from '../hooks/useAuth';
+import MemberSelect from '../components/MemberSelect';
 
 const NewTaskScreen = () => {
   const navigate = useNavigate();
@@ -79,9 +80,9 @@ const NewTaskScreen = () => {
           setProjectId(task.projectId);
           setAssignedToId(task.assignedToId || '');
           // Map difficulty back to level (approximate)
-          if (task.difficulty <= 3) setTaskLevel('basic');
-          else if (task.difficulty <= 6) setTaskLevel('medium');
-          else setTaskLevel('large');
+          if (task.difficulty === 1) setTaskLevel('basic');
+          else if (task.difficulty === 2) setTaskLevel('medium');
+          else setTaskLevel('large'); // difficulty 3
 
           if (task.estimatedTimeMinutes) {
             setEstimatedTime((task.estimatedTimeMinutes / 60).toString());
@@ -101,17 +102,17 @@ const NewTaskScreen = () => {
   useEffect(() => {
     switch (taskLevel) {
       case 'basic': setPoints(50); break; // Visual cue
-      case 'medium': setPoints(150); break;
-      case 'large': setPoints(300); break;
+      case 'medium': setPoints(100); break;
+      case 'large': setPoints(200); break;
     }
   }, [taskLevel]);
 
   const mapLevelToDifficulty = (level: string) => {
     switch (level) {
-      case 'basic': return 3;
-      case 'medium': return 6;
-      case 'large': return 9;
-      default: return 5;
+      case 'basic': return 1;
+      case 'medium': return 2;
+      case 'large': return 3;
+      default: return 2;
     }
   };
 
@@ -240,20 +241,15 @@ const NewTaskScreen = () => {
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                   <User size={16} className="text-primary" /> Responsável
                 </label>
-                {loadingUsers ? (
-                  <div className="h-12 w-full bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse"></div>
-                ) : (
-                  <select
-                    value={assignedToId}
-                    onChange={(e) => setAssignedToId(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-secondary dark:text-white cursor-pointer appearance-none"
-                  >
-                    <option value="">Atribuir a...</option>
-                    {users.map((u: any) => (
-                      <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-                    ))}
-                  </select>
-                )}
+                <MemberSelect
+                  members={users}
+                  selectedId={assignedToId}
+                  onChange={setAssignedToId}
+                  loading={loadingUsers}
+                  placeholder="Atribuir a..."
+                  allowUnassigned={true}
+                  unassignedLabel="Sem responsável"
+                />
               </div>
 
               {/* Task Level & Points */}
@@ -263,9 +259,9 @@ const NewTaskScreen = () => {
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                   {[
-                    { id: 'basic', label: 'Básica (lvl 1)', pts: 50 },
-                    { id: 'medium', label: 'Média (lvl 2)', pts: 150 },
-                    { id: 'large', label: 'Grande (lvl 3)', pts: 300 }
+                    { id: 'basic', label: 'Básica', pts: 50 },
+                    { id: 'medium', label: 'Média', pts: 100 },
+                    { id: 'large', label: 'Grande', pts: 200 }
                   ].map((level) => (
                     <button
                       key={level.id}

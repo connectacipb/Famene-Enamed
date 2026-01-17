@@ -40,6 +40,7 @@ const LoginScreen = () => {
     try {
       const data = await login(email, password);
       localStorage.setItem('token', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
       localStorage.setItem('user', JSON.stringify(data.user));
       navigate('/dashboard');
     } catch (err: any) {
