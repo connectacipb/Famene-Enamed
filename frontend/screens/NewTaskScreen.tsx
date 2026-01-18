@@ -125,6 +125,7 @@ const NewTaskScreen = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (submitting) return;
     setSubmitting(true);
 
     if (!title || !projectId) {

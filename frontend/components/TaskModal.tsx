@@ -134,8 +134,25 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId: defaultProject
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const target = e.currentTarget;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      
+      const newValue = description.substring(0, start) + "\t" + description.substring(end);
+      setDescription(newValue);
+      
+      setTimeout(() => {
+        target.selectionStart = target.selectionEnd = start + 1;
+      }, 0);
+    }
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
 
     if (!title || (!projectId && !isEditMode)) {
@@ -377,6 +394,7 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId: defaultProject
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                onKeyDown={handleKeyDown}
                 rows={3}
                 placeholder="Adicionar detalhes..."
                 className="w-full bg-gray-800/50 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-primary/50 text-sm resize-none"
@@ -586,6 +604,7 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId: defaultProject
                 rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-secondary dark:text-white placeholder-gray-400 resize-none"
                 placeholder="Descreva o que precisa ser feito, critérios de aceitação e recursos necessários..."
               />
@@ -813,7 +832,8 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId: defaultProject
             Cancelar
           </button>
           <button
-            onClick={handleSubmit}
+            type="button"
+            onClick={() => handleSubmit()}
             disabled={submitting}
             className="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:bg-blue-600 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >

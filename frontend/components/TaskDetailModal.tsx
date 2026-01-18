@@ -144,8 +144,18 @@ const RichEditor: React.FC<{
       onKeyDown={(e) => {
         if (e.key === 'Tab') {
           e.preventDefault();
-          document.execCommand('insertText', false, '\t');
-          handleInput();
+          const selection = window.getSelection();
+          const range = selection?.getRangeAt(0);
+          if (range) {
+            range.deleteContents();
+            const tabNode = document.createTextNode('\t');
+            range.insertNode(tabNode);
+            range.setStartAfter(tabNode);
+            range.setEndAfter(tabNode); 
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+            handleInput();
+          }
         }
       }}
       data-placeholder={placeholder}
