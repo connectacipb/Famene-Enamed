@@ -175,7 +175,7 @@ const AchievementsScreen = () => {
             </div>
           </div>
 
-          {/* XP Card */}
+          {/* 🪙 Card */}
           <div className="bg-surface-light dark:bg-surface-dark rounded-3xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-500">
@@ -183,7 +183,7 @@ const AchievementsScreen = () => {
               </div>
               <div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">Connecta Points</p>
-                <p className="text-2xl font-bold text-secondary dark:text-white">{user?.connectaPoints || 0} XP</p>
+                <p className="text-2xl font-bold text-secondary dark:text-white">{user?.connectaPoints || 0} 🪙</p>
               </div>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">Você está no top <strong className="text-green-500">5%</strong> dos alunos esta semana! Continue assim.</p>

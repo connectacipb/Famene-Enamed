@@ -6,7 +6,7 @@ import { Skeleton } from '../components/Skeleton';
 
 const FILTERS = [
   { id: 'daily', label: 'Diário' },
-  { id: 'weekly', label: 'Semanal' }, // Changed to match backend usually? Controller has getWeeklyLeaderboard maybe?
+  { id: 'week', label: 'Semanal' },
   { id: 'monthly', label: 'Mensal' },
   { id: 'all', label: 'Global' },
 ];
@@ -215,7 +215,7 @@ const RankingScreen = () => {
                 <div className="col-span-1 text-center">Pos</div>
                 <div className="col-span-6">Estudante</div>
                 <div className="col-span-3">Nível</div>
-                <div className="col-span-2 text-right text-primary">XP</div>
+                <div className="col-span-2 text-right text-primary">🪙</div>
               </div>
 
               <div className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -252,7 +252,7 @@ const RankingScreen = () => {
                       </div>
                       <div className="col-span-3 sm:col-span-2 text-right">
                         <span className="font-black text-primary text-sm sm:text-base">{student.connectaPoints || student.points}</span>
-                        <span className="block text-[8px] font-bold text-gray-400 sm:hidden">XP</span>
+                        <span className="block text-[8px] font-bold text-gray-400 sm:hidden">🪙</span>
                       </div>
                     </div>
                   );
@@ -274,8 +274,8 @@ const RankingScreen = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Meus Pontos</p>
-                    <p className="text-xl font-black">{currentUserRankData.connectaPoints || currentUserRankData.points} XP</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Minha Pontuação</p>
+                    <p className="text-xl font-black">{currentUserRankData.connectaPoints || currentUserRankData.points} 🪙</p>
                   </div>
                 </div>
               </div>

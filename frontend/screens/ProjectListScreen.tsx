@@ -78,7 +78,7 @@ const ProjectListScreen = () => {
               Projetos Disponíveis
             </h1>
             <p className="text-gray-600 dark:text-gray-400 max-w-xl text-lg">
-              Encontre o projeto ideal para desenvolver suas habilidades, ganhar XP e conectar-se com outros estudantes.
+              Encontre o projeto ideal para desenvolver suas habilidades, ganhar 🪙 e conectar-se com outros estudantes.
             </p>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
