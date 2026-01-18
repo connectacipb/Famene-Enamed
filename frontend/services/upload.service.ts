@@ -10,3 +10,6 @@ export const uploadFile = async (file: File) => {
     });
     return response.data; // Expected { url: string }
 };
+
+// Alias para upload de imagens (usado no paste de imagens)
+export const uploadImage = uploadFile;

@@ -1,20 +1,32 @@
 import prisma from '../utils/prisma';
 import { Prisma, Task, TaskStatus } from '@prisma/client';
 
+// Include padrão para tasks com assignees
+const taskInclude = {
+  assignedTo: { select: { id: true, name: true, email: true, avatarUrl: true } },
+  createdBy: { select: { id: true, name: true, email: true } },
+  project: { select: { id: true, title: true } },
+  requiredTier: true,
+  assignees: {
+    include: {
+      user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+    },
+    orderBy: { assignedAt: 'asc' as const },
+  },
+};
+
 export const createTask = async (data: Prisma.TaskCreateInput, transaction?: Prisma.TransactionClient): Promise<Task> => {
   const client = transaction || prisma;
-  return client.task.create({ data });
+  return client.task.create({ 
+    data,
+    include: taskInclude,
+  });
 };
 
 export const findTaskById = async (id: string): Promise<Task | null> => {
   return prisma.task.findUnique({
     where: { id },
-    include: {
-      assignedTo: { select: { id: true, name: true, email: true, avatarUrl: true } },
-      createdBy: { select: { id: true, name: true, email: true } },
-      project: { select: { id: true, title: true } },
-      requiredTier: true,
-    },
+    include: taskInclude,
   });
 };
 
@@ -23,12 +35,7 @@ export const updateTask = async (id: string, data: Prisma.TaskUpdateInput, trans
   return client.task.update({
     where: { id },
     data,
-    include: {
-      assignedTo: { select: { id: true, name: true, email: true, avatarUrl: true } },
-      createdBy: { select: { id: true, name: true, email: true } },
-      project: { select: { id: true, title: true } },
-      requiredTier: true,
-    },
+    include: taskInclude,
   });
 };
 
@@ -44,6 +51,12 @@ export const findTasksByProjectId = async (projectId: string): Promise<Task[]> =
       assignedTo: { select: { id: true, name: true, avatarUrl: true } },
       createdBy: { select: { id: true, name: true } },
       requiredTier: true,
+      assignees: {
+        include: {
+          user: { select: { id: true, name: true, avatarUrl: true } },
+        },
+        orderBy: { assignedAt: 'asc' },
+      },
     },
     orderBy: { createdAt: 'asc' },
   });
@@ -52,13 +65,54 @@ export const findTasksByProjectId = async (projectId: string): Promise<Task[]> =
 export const findUserTasks = async (userId: string, status?: TaskStatus): Promise<Task[]> => {
   return prisma.task.findMany({
     where: {
-      assignedToId: userId,
+      OR: [
+        { assignedToId: userId },
+        { assignees: { some: { userId } } },
+      ],
       ...(status && { status }),
     },
     include: {
       project: { select: { id: true, title: true } },
       requiredTier: true,
+      assignees: {
+        include: {
+          user: { select: { id: true, name: true, avatarUrl: true } },
+        },
+      },
     },
     orderBy: { dueDate: 'asc' },
   });
+};
+
+// Funções para gerenciar múltiplos assignees
+export const addTaskAssignee = async (taskId: string, userId: string, transaction?: Prisma.TransactionClient) => {
+  const client = transaction || prisma;
+  return client.taskAssignee.upsert({
+    where: { taskId_userId: { taskId, userId } },
+    create: { taskId, userId },
+    update: {},
+    include: {
+      user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+    },
+  });
+};
+
+export const removeTaskAssignee = async (taskId: string, userId: string, transaction?: Prisma.TransactionClient) => {
+  const client = transaction || prisma;
+  return client.taskAssignee.delete({
+    where: { taskId_userId: { taskId, userId } },
+  });
+};
+
+export const syncTaskAssignees = async (taskId: string, userIds: string[], transaction?: Prisma.TransactionClient) => {
+  const client = transaction || prisma;
+  
+  // Remove todos e adiciona os novos
+  await client.taskAssignee.deleteMany({ where: { taskId } });
+  
+  if (userIds.length > 0) {
+    await client.taskAssignee.createMany({
+      data: userIds.map(userId => ({ taskId, userId })),
+    });
+  }
 };

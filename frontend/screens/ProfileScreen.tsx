@@ -21,6 +21,8 @@ import { useNavigate } from 'react-router-dom';
 import { getProfile, updateUser, uploadAvatar } from '../services/user.service';
 import toast from 'react-hot-toast';
 
+import { Skeleton } from '../components/Skeleton';
+
 const ProfileScreen = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
@@ -126,8 +128,68 @@ const ProfileScreen = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <Loader className="animate-spin text-primary" size={32} />
+            <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+                {/* Header Skeleton */}
+                <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-8 relative overflow-hidden">
+                    <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                        <Skeleton variant="circular" width={112} height={112} className="shrink-0" />
+                        <div className="flex-1 space-y-4 w-full">
+                            <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                <Skeleton variant="text" width={200} height={32} />
+                                <Skeleton variant="rectangular" width={100} height={24} className="rounded-full" />
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center mb-1">
+                                    <Skeleton variant="text" width={150} height={12} />
+                                    <Skeleton variant="text" width={80} height={12} />
+                                </div>
+                                <Skeleton variant="rectangular" width="100%" height={8} className="rounded-full" />
+                            </div>
+                            <Skeleton variant="text" width="80%" height={16} />
+                            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                                <Skeleton variant="rectangular" width={60} height={24} className="rounded" />
+                                <Skeleton variant="rectangular" width={80} height={24} className="rounded" />
+                                <Skeleton variant="rectangular" width={70} height={24} className="rounded" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Stats Grid Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="bg-white dark:bg-surface-dark rounded-xl p-5 border border-slate-200 dark:border-slate-700 flex items-center gap-4">
+                            <Skeleton variant="rectangular" width={48} height={48} className="rounded-lg shrink-0" />
+                            <div className="space-y-2 flex-1">
+                                <Skeleton variant="text" width="40%" height={12} />
+                                <Skeleton variant="text" width="70%" height={20} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Projects Section Skeleton */}
+                <div>
+                    <div className="flex justify-between items-center mb-6">
+                        <Skeleton variant="text" width={180} height={28} />
+                        <Skeleton variant="rectangular" width={120} height={40} className="hidden sm:block rounded-xl" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                                <Skeleton variant="rectangular" width="100%" height={160} />
+                                <div className="p-5 space-y-3">
+                                    <Skeleton variant="text" width="80%" height={24} />
+                                    <Skeleton variant="text" width="100%" height={16} />
+                                    <Skeleton variant="text" width="100%" height={16} />
+                                    <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-800">
+                                        <Skeleton variant="rectangular" width="100%" height={40} className="rounded-lg" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }

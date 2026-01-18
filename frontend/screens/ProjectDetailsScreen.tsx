@@ -2,12 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Draggable } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '../components/StrictModeDroppable';
-import { deleteTask, getProjectKanban, updateTaskStatus, createColumn, updateColumn, deleteColumn, reorderColumns } from '../services/task.service';
+import { deleteTask, getProjectKanban, updateTaskStatus, createColumn, updateColumn, deleteColumn, reorderColumns, createQuickTask } from '../services/task.service';
 import { getProfile } from '../services/user.service';
 import { uploadProjectCover, updateProject } from '../services/project.service';
 import { useProjectDetails } from '../hooks/useProjects';
 import { Skeleton } from '../components/Skeleton';
 import TaskModal from '../components/TaskModal';
+import TaskDetailModal from '../components/TaskDetailModal';
 import { Camera, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../components/ConfirmationModal';
@@ -28,6 +29,12 @@ const ProjectDetailsScreen = () => {
     const [editingTitle, setEditingTitle] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    
+    // Inline card creation state (Trello-style)
+    const [inlineCreatingColumnId, setInlineCreatingColumnId] = useState<string | null>(null);
+    const [inlineTaskTitle, setInlineTaskTitle] = useState('');
+    const [isCreatingInline, setIsCreatingInline] = useState(false);
+    const inlineInputRef = useRef<HTMLTextAreaElement>(null);
     const scrollInterval = useRef<any>(null);
 
     // Grab-to-scroll state for desktop
@@ -169,6 +176,57 @@ const ProjectDetailsScreen = () => {
         } finally {
             setLoadingKanban(false);
         }
+    };
+
+    // Inline card creation handlers
+    const handleStartInlineCreate = (columnId: string) => {
+        setInlineCreatingColumnId(columnId);
+        setInlineTaskTitle('');
+        // Focus the input after render
+        setTimeout(() => {
+            inlineInputRef.current?.focus();
+        }, 50);
+    };
+
+    const handleInlineKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            await submitInlineTask();
+        } else if (e.key === 'Escape') {
+            cancelInlineCreate();
+        }
+    };
+
+    const handleInlineBlur = async () => {
+        // Small delay to allow clicking the add button
+        setTimeout(async () => {
+            if (inlineTaskTitle.trim()) {
+                await submitInlineTask();
+            } else {
+                cancelInlineCreate();
+            }
+        }, 150);
+    };
+
+    const submitInlineTask = async () => {
+        if (!inlineTaskTitle.trim() || !inlineCreatingColumnId || isCreatingInline) return;
+        
+        setIsCreatingInline(true);
+        try {
+            await createQuickTask(id!, inlineCreatingColumnId, inlineTaskTitle.trim());
+            toast.success('Cartão criado!');
+            fetchKanban();
+            cancelInlineCreate();
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Erro ao criar cartão');
+        } finally {
+            setIsCreatingInline(false);
+        }
+    };
+
+    const cancelInlineCreate = () => {
+        setInlineCreatingColumnId(null);
+        setInlineTaskTitle('');
     };
 
     const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -410,9 +468,19 @@ const ProjectDetailsScreen = () => {
                 // 1. Filter by Members
                 let matchesMember = true;
                 if (selectedMemberFilters.length > 0) {
-                    const isUnassigned = !task.assignedTo;
+                    // Verificar se tem assignees (múltiplos) ou assignedTo (legado)
+                    const hasAssignees = task.assignees && task.assignees.length > 0;
+                    const isUnassigned = !hasAssignees && !task.assignedTo;
                     const matchesUnassigned = selectedMemberFilters.includes('unassigned') && isUnassigned;
-                    const matchesSpecific = task.assignedTo && selectedMemberFilters.includes(task.assignedTo.id);
+                    
+                    // Verificar se algum dos assignees corresponde ao filtro
+                    let matchesSpecific = false;
+                    if (hasAssignees) {
+                        matchesSpecific = task.assignees.some((a: any) => selectedMemberFilters.includes(a.user?.id));
+                    } else if (task.assignedTo) {
+                        matchesSpecific = selectedMemberFilters.includes(task.assignedTo.id);
+                    }
+                    
                     matchesMember = matchesUnassigned || matchesSpecific;
                 }
 
@@ -881,11 +949,30 @@ const ProjectDetailsScreen = () => {
                                                                                 </h4>
                                                                                 <div className="flex items-center justify-between mt-3">
                                                                                     <div className="flex items-center -space-x-2">
-                                                                                        {task.assignedTo ? (
+                                                                                        {/* Múltiplos responsáveis */}
+                                                                                        {(task.assignees && task.assignees.length > 0) ? (
+                                                                                            <>
+                                                                                                {task.assignees.slice(0, 3).map((assignee: any, idx: number) => (
+                                                                                                    <img
+                                                                                                        key={assignee.user?.id || idx}
+                                                                                                        alt={assignee.user?.name}
+                                                                                                        className={`w-6 h-6 rounded-full border border-white dark:border-surface-dark object-cover ${column.status === 'done' ? 'grayscale' : ''}`}
+                                                                                                        src={assignee.user?.avatarUrl || `https://ui-avatars.com/api/?name=${assignee.user?.name}&background=random`}
+                                                                                                        title={assignee.user?.name}
+                                                                                                    />
+                                                                                                ))}
+                                                                                                {task.assignees.length > 3 && (
+                                                                                                    <div className="w-6 h-6 rounded-full bg-gray-500 text-white flex items-center justify-center text-[10px] font-bold border border-white dark:border-surface-dark">
+                                                                                                        +{task.assignees.length - 3}
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </>
+                                                                                        ) : task.assignedTo ? (
                                                                                             <img
                                                                                                 alt={task.assignedTo.name}
-                                                                                                className={`w-6 h-6 rounded-full border border-white dark:border-surface-dark ${column.status === 'done' ? 'grayscale' : ''}`}
+                                                                                                className={`w-6 h-6 rounded-full border border-white dark:border-surface-dark object-cover ${column.status === 'done' ? 'grayscale' : ''}`}
                                                                                                 src={task.assignedTo.avatarUrl || `https://ui-avatars.com/api/?name=${task.assignedTo.name}&background=random`}
+                                                                                                title={task.assignedTo.name}
                                                                                             />
                                                                                         ) : (
                                                                                             <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-[10px] font-bold text-gray-500 dark:text-gray-300 border border-white dark:border-surface-dark">?</div>
@@ -913,12 +1000,46 @@ const ProjectDetailsScreen = () => {
                                                                     </Draggable>
                                                                 ))}
                                                                 {provided.placeholder}
-                                                                <button
-                                                                    onClick={() => { setInitialColumnId(column.id); setIsNewTaskModalOpen(true); }}
-                                                                    className="w-full py-2 text-sm text-gray-500 hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center justify-center gap-1 font-medium border border-dashed border-gray-300 dark:border-gray-700"
-                                                                >
-                                                                    <span className="material-icons text-sm">add</span> Adicionar cartão
-                                                                </button>
+                                                                
+                                                                {/* Inline card creation (Trello-style) */}
+                                                                {inlineCreatingColumnId === column.id ? (
+                                                                    <div className="bg-white dark:bg-surface-dark p-2 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                                                        <textarea
+                                                                            ref={inlineInputRef}
+                                                                            value={inlineTaskTitle}
+                                                                            onChange={(e) => setInlineTaskTitle(e.target.value)}
+                                                                            onKeyDown={handleInlineKeyDown}
+                                                                            onBlur={handleInlineBlur}
+                                                                            placeholder="Digite o título da tarefa..."
+                                                                            className="w-full p-2 text-sm bg-transparent border-0 focus:ring-0 resize-none rounded-lg placeholder:text-gray-400 dark:text-gray-100"
+                                                                            rows={2}
+                                                                            disabled={isCreatingInline}
+                                                                        />
+                                                                        <div className="flex items-center gap-2 mt-1">
+                                                                            <button
+                                                                                onClick={submitInlineTask}
+                                                                                disabled={!inlineTaskTitle.trim() || isCreatingInline}
+                                                                                className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                                            >
+                                                                                {isCreatingInline ? 'Criando...' : 'Adicionar'}
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={cancelInlineCreate}
+                                                                                disabled={isCreatingInline}
+                                                                                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                                                                            >
+                                                                                <span className="material-icons text-lg">close</span>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => handleStartInlineCreate(column.id)}
+                                                                        className="w-full py-2 text-sm text-gray-500 hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center justify-center gap-1 font-medium border border-dashed border-gray-300 dark:border-gray-700"
+                                                                    >
+                                                                        <span className="material-icons text-sm">add</span> Adicionar cartão
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </StrictModeDroppable>
@@ -944,14 +1065,24 @@ const ProjectDetailsScreen = () => {
                     </StrictModeDroppable>
                 </DragDropContext>
             </div>
+            {/* Modal para criação de nova tarefa (modo completo) */}
             <TaskModal
-                isOpen={isNewTaskModalOpen || isTaskDetailsOpen}
-                onClose={() => { setIsNewTaskModalOpen(false); setIsTaskDetailsOpen(false); setSelectedTask(null); }}
+                isOpen={isNewTaskModalOpen}
+                onClose={() => { setIsNewTaskModalOpen(false); }}
                 projectId={id}
                 initialColumnId={initialColumnId}
                 projectMembers={project?.members}
                 onSuccess={fetchKanban}
+            />
+            
+            {/* Modal para visualização/edição de tarefa existente (estilo Trello) */}
+            <TaskDetailModal
+                isOpen={isTaskDetailsOpen}
+                onClose={() => { setIsTaskDetailsOpen(false); setSelectedTask(null); }}
+                onSuccess={fetchKanban}
                 task={selectedTask}
+                projectMembers={project?.members}
+                columns={columns}
             />
 
             <ConfirmationModal

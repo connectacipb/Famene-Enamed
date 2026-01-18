@@ -62,3 +62,24 @@ export const reorderColumns = async (projectId: string, columnIds: string[]) => 
   return response.data;
 };
 
+// Criação rápida de task com apenas título (estilo Trello)
+export const createQuickTask = async (projectId: string, columnId: string, title: string) => {
+  const response = await api.post('/tasks', {
+    projectId,
+    columnId,
+    title,
+    difficulty: 2, // Default: média
+  });
+  return response.data;
+};
+
+// Adicionar/remover responsáveis
+export const addTaskAssignee = async (taskId: string, userId: string) => {
+  const response = await api.post(`/tasks/${taskId}/assignees`, { userId });
+  return response.data;
+};
+
+export const removeTaskAssignee = async (taskId: string, userId: string) => {
+  const response = await api.delete(`/tasks/${taskId}/assignees/${userId}`);
+  return response.data;
+};
