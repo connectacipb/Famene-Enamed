@@ -919,7 +919,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               ) : (
                 <div 
                   onClick={() => setIsEditingDescription(true)}
-                  className={`min-h-[60px] p-3 text-sm rounded-lg cursor-pointer transition-colors border ${description ? 'text-gray-700 dark:text-gray-300 border-transparent hover:border-gray-200 dark:hover:border-gray-700' : 'text-gray-400 bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                  className={`min-h-[60px] p-3 text-sm rounded-lg cursor-pointer transition-colors border whitespace-pre-wrap ${description ? 'text-gray-700 dark:text-gray-300 border-transparent hover:border-gray-200 dark:hover:border-gray-700' : 'text-gray-400 bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                   dangerouslySetInnerHTML={{ __html: description ? textToHtmlWithImages(description) : 'Descrição... (Ctrl+V para imagens)' }}
                 />
               )}
