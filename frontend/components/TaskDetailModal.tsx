@@ -141,8 +141,15 @@ const RichEditor: React.FC<{
       onFocus={handleFocus}
       onBlur={handleBlur}
       onPaste={handlePaste}
+      onKeyDown={(e) => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '\t');
+          handleInput();
+        }
+      }}
       data-placeholder={placeholder}
-      className={`outline-none ${className} ${!value ? 'empty-placeholder' : ''}`}
+      className={`outline-none whitespace-pre-wrap ${className} ${!value ? 'empty-placeholder' : ''}`}
       style={{ minHeight }}
     />
   );

@@ -160,6 +160,22 @@ const NewTaskScreen = () => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const target = e.currentTarget;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      
+      const newValue = description.substring(0, start) + "\t" + description.substring(end);
+      setDescription(newValue);
+      
+      setTimeout(() => {
+        target.selectionStart = target.selectionEnd = start + 1;
+      }, 0);
+    }
+  };
+
   // Get selected project name
   const selectedProject = projects.find((p: any) => p.id === projectId);
 
@@ -277,6 +293,7 @@ const NewTaskScreen = () => {
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder="Adicionar descrição..."
                   className="flex-1 bg-gray-800/50 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none text-sm"
                 />
@@ -490,6 +507,7 @@ const NewTaskScreen = () => {
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-secondary dark:text-white placeholder-gray-400 resize-none"
                   placeholder="Descreva o que precisa ser feito, critérios de aceitação e recursos necessários..."
                 />
