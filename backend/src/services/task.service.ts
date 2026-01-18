@@ -1,5 +1,5 @@
 import { Prisma, Task, TaskStatus, Role, ActivityType } from '@prisma/client';
-import { createTask, findTaskById, updateTask, deleteTask, findTasksByProjectId, findUserTasks } from '../repositories/task.repository';
+import { createTask, findTaskById, updateTask, deleteTask, findTasksByProjectId, findUserTasks, syncTaskAssignees } from '../repositories/task.repository';
 import { findUserById } from '../repositories/user.repository';
 import { findProjectById, isUserProjectMember } from '../repositories/project.repository';
 import { createActivityLog } from '../repositories/activityLog.repository';
@@ -39,24 +39,34 @@ export const createNewTask = async (data: CreateTaskInput, createdById: string) 
     }
   }
 
-  const pointsReward = calculateTaskPoints(data.difficulty);
+  const difficulty = data.difficulty || 2;
+  const pointsReward = calculateTaskPoints(difficulty);
 
   const taskResult = await prisma.$transaction(async (tx) => {
     const task = await createTask({
       title: data.title,
       description: data.description,
-      difficulty: data.difficulty,
+      difficulty,
       estimatedTimeMinutes: data.estimatedTimeMinutes,
       pointsReward,
       dueDate: data.dueDate,
       tags: data.tags,
       isExternalDemand,
+      // Novos campos estilo Trello
+      startDate: data.startDate,
+      durationMinutes: data.durationMinutes,
+      attachmentUrl: data.attachmentUrl || null,
       createdBy: { connect: { id: createdById } },
       project: { connect: { id: data.projectId } },
       assignedTo: data.assignedToId ? { connect: { id: data.assignedToId } } : undefined,
       KanbanColumn: data.columnId ? ({ connect: { id: data.columnId } } as any) : undefined,
       requiredTier: data.requiredTierId ? { connect: { id: data.requiredTierId } } : undefined,
-    }, tx);
+    } as any, tx);
+
+    // Sincronizar múltiplos assignees se fornecidos
+    if (data.assigneeIds && data.assigneeIds.length > 0) {
+      await syncTaskAssignees(task.id, data.assigneeIds, tx);
+    }
 
     await createActivityLog({
       user: { connect: { id: createdById } },
@@ -111,14 +121,37 @@ export const updateTaskDetails = async (id: string, data: UpdateTaskInput, reque
     }
   }
 
+  // Extrair assigneeIds do data antes de passar para o Prisma
+  const { assigneeIds, ...taskData } = data as any;
+
   return prisma.$transaction(async (tx) => {
-    const updateData: Prisma.TaskUpdateInput = { ...data };
+    const updateData: any = { ...taskData };
+
+    // Limpar attachmentUrl se vier vazio
+    if (updateData.attachmentUrl === '') {
+      updateData.attachmentUrl = null;
+    }
 
     if (data.difficulty !== undefined) {
       updateData.pointsReward = calculateTaskPoints(data.difficulty);
     }
 
+    // Tratar columnId para conexão
+    if (taskData.columnId !== undefined) {
+      if (taskData.columnId) {
+        updateData.KanbanColumn = { connect: { id: taskData.columnId } };
+      } else {
+        updateData.KanbanColumn = { disconnect: true };
+      }
+      delete updateData.columnId;
+    }
+
     const updatedTask = await updateTask(id, updateData, tx);
+
+    // Sincronizar múltiplos assignees se fornecidos
+    if (assigneeIds !== undefined) {
+      await syncTaskAssignees(id, assigneeIds || [], tx);
+    }
 
     if (data.assignedToId && data.assignedToId !== task.assignedToId) {
       const assignedUser = data.assignedToId ? await findUserById(data.assignedToId) : null;

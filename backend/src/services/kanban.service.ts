@@ -14,8 +14,14 @@ export const getProjectBoard = async (projectId: string) => {
     const tasks = await prisma.task.findMany({
         where: { projectId },
         include: {
-            assignedTo: { select: { id: true, name: true, avatarColor: true } },
+            assignedTo: { select: { id: true, name: true, avatarUrl: true, avatarColor: true } },
             createdBy: { select: { id: true, name: true } },
+            assignees: {
+                include: {
+                    user: { select: { id: true, name: true, avatarUrl: true } },
+                },
+                orderBy: { assignedAt: 'asc' },
+            },
         },
     });
 

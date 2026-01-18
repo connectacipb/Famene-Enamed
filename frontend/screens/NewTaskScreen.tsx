@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom'; // Added useParams
-import { Calendar, User, AlignLeft, Folder, ArrowLeft, Check, Clock, Zap, BarChart3, AlertCircle } from 'lucide-react';
-import { createTask, getTask, updateTask } from '../services/task.service'; // Added getTask, updateTask
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { Calendar, User, AlignLeft, Folder, ArrowLeft, Check, Clock, Zap, BarChart3, AlertCircle, X, MoreVertical, ChevronDown, ChevronUp, Tag, Paperclip, CheckSquare, Users, Image } from 'lucide-react';
+import { createTask, getTask, updateTask } from '../services/task.service';
 import { useProjects } from '../hooks/useProjects';
 import { getAllUsers } from '../services/user.service';
 import { getProjectDetails } from '../services/project.service';
@@ -11,7 +11,7 @@ import MemberSelect from '../components/MemberSelect';
 const NewTaskScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { id } = useParams<{ id: string }>(); // Get ID from URL
+  const { id } = useParams<{ id: string }>();
   const isEditing = !!id;
   const { user } = useAuth();
   const { projects, loading: loadingProjects } = useProjects();
@@ -19,32 +19,41 @@ const NewTaskScreen = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   const [taskLevel, setTaskLevel] = useState<'basic' | 'medium' | 'large'>('medium');
-  const [points, setPoints] = useState(150); // This is visual only, backend calculates real points
+  const [points, setPoints] = useState(150);
 
   // Form State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  // Initialize projectId from location state if available
   const [projectId, setProjectId] = useState(location.state?.projectId || '');
   const [assignedToId, setAssignedToId] = useState('');
   const [estimatedTime, setEstimatedTime] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [startDate, setStartDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Mobile collapsible sections
+  const [showQuickActions, setShowQuickActions] = useState(true);
+  const [showDescription, setShowDescription] = useState(false);
+
+  // Check if mobile viewport
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchContextData = async () => {
       setLoadingUsers(true);
       try {
         if (projectId) {
-            // If project is selected (or comes from context), fetch its members
             const projectData = await getProjectDetails(projectId);
-            // Map project members to users format if needed
-            // Assuming projectData.members includes user info
             if (projectData.members) {
                  setUsers(projectData.members.map((m: any) => m.user || m));
             } else {
-                 // Fallback if structure is different
                  const allUsers = await getAllUsers();
                  setUsers(allUsers);
             }
@@ -54,7 +63,6 @@ const NewTaskScreen = () => {
         }
       } catch (err) {
         console.error("Failed to fetch context data", err);
-        // Fallback
         try {
             const data = await getAllUsers();
             setUsers(data || []);
@@ -64,12 +72,11 @@ const NewTaskScreen = () => {
       }
     };
     
-    if (projectId || !projectId) { // Run always, but logic changes inside
+    if (projectId || !projectId) {
         fetchContextData();
     }
   }, [projectId]);
 
-  // Fetch task details if editing
   useEffect(() => {
     if (isEditing && id) {
       const fetchTask = async () => {
@@ -79,10 +86,9 @@ const NewTaskScreen = () => {
           setDescription(task.description || '');
           setProjectId(task.projectId);
           setAssignedToId(task.assignedToId || '');
-          // Map difficulty back to level (approximate)
           if (task.difficulty === 1) setTaskLevel('basic');
           else if (task.difficulty === 2) setTaskLevel('medium');
-          else setTaskLevel('large'); // difficulty 3
+          else setTaskLevel('large');
 
           if (task.estimatedTimeMinutes) {
             setEstimatedTime((task.estimatedTimeMinutes / 60).toString());
@@ -101,7 +107,7 @@ const NewTaskScreen = () => {
 
   useEffect(() => {
     switch (taskLevel) {
-      case 'basic': setPoints(50); break; // Visual cue
+      case 'basic': setPoints(50); break;
       case 'medium': setPoints(100); break;
       case 'large': setPoints(200); break;
     }
@@ -132,11 +138,11 @@ const NewTaskScreen = () => {
         title,
         description,
         projectId,
-        assignedToId: assignedToId || undefined, // Send undefined if empty to avoid invalid UUID
+        assignedToId: assignedToId || undefined,
         difficulty: mapLevelToDifficulty(taskLevel),
-        estimatedTimeMinutes: estimatedTime ? parseInt(estimatedTime) * 60 : undefined, // hours to minutes
+        estimatedTimeMinutes: estimatedTime ? parseInt(estimatedTime) * 60 : undefined,
         dueDate: deadline ? new Date(deadline).toISOString() : undefined,
-        isExternalDemand: false // Default
+        isExternalDemand: false
       };
 
       if (isEditing && id) {
@@ -145,7 +151,7 @@ const NewTaskScreen = () => {
         await createTask(payload);
       }
 
-      navigate(-1); // Go back regardless of edit or create
+      navigate(-1);
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.message || "Erro ao salvar tarefa. Verifique os dados.");
@@ -154,6 +160,283 @@ const NewTaskScreen = () => {
     }
   };
 
+  // Get selected project name
+  const selectedProject = projects.find((p: any) => p.id === projectId);
+
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-background-dark flex flex-col">
+        {/* Mobile Header */}
+        <header className="sticky top-0 z-50 bg-background-dark border-b border-gray-800 px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
+          <h1 className="text-lg font-bold text-white flex-1 text-center">
+            {isEditing ? 'Editar Tarefa' : title || 'Nova Tarefa'}
+          </h1>
+          <button className="p-2 -mr-2 text-gray-400 hover:text-white transition-colors">
+            <MoreVertical size={24} />
+          </button>
+        </header>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto pb-24">
+          {/* Cover Image Placeholder */}
+          <div className="relative h-32 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <Image size={24} className="text-white/50" />
+              </div>
+            </div>
+            <button className="absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg text-sm text-white/80 border border-white/20">
+              <Image size={14} /> Capa
+            </button>
+          </div>
+
+          {/* Title Input */}
+          <div className="px-4 py-4 border-b border-gray-800">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full border-2 border-gray-600 flex-shrink-0 mt-1" />
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Nome da tarefa..."
+                className="flex-1 bg-transparent text-xl font-semibold text-white placeholder-gray-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Project Selection */}
+          {!location.state?.projectId && (
+            <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                  <Folder size={16} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-white font-medium text-sm">
+                    {selectedProject?.title || 'Selecionar Projeto'}
+                  </p>
+                  <p className="text-gray-500 text-xs">Produção</p>
+                </div>
+              </div>
+              <select
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className="bg-transparent text-primary text-sm font-medium cursor-pointer focus:outline-none"
+              >
+                <option value="" className="bg-gray-900">Mover</option>
+                {projects.map((project: any) => (
+                  <option key={project.id} value={project.id} className="bg-gray-900">
+                    {project.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Quick Actions Section */}
+          <div className="border-b border-gray-800">
+            <button
+              onClick={() => setShowQuickActions(!showQuickActions)}
+              className="w-full px-4 py-3 flex items-center justify-between text-gray-400"
+            >
+              <span className="text-sm font-medium">Ações rápidas</span>
+              {showQuickActions ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+            
+            {showQuickActions && (
+              <div className="px-4 pb-4 grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setShowDescription(!showDescription)}
+                  className="flex items-center gap-2 px-4 py-3 bg-emerald-500/20 text-emerald-400 rounded-xl font-medium text-sm"
+                >
+                  <CheckSquare size={18} /> Adicionar descrição
+                </button>
+                <button className="flex items-center gap-2 px-4 py-3 bg-gray-800 text-gray-300 rounded-xl font-medium text-sm">
+                  <Paperclip size={18} /> Adicionar anexo
+                </button>
+                <button className="flex items-center gap-2 px-4 py-3 bg-gray-800 text-gray-300 rounded-xl font-medium text-sm">
+                  <Users size={18} /> Membros
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Description (Collapsible) */}
+          {showDescription && (
+            <div className="px-4 py-4 border-b border-gray-800">
+              <div className="flex items-start gap-3">
+                <AlignLeft size={20} className="text-gray-500 flex-shrink-0 mt-1" />
+                <textarea
+                  rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Adicionar descrição..."
+                  className="flex-1 bg-gray-800/50 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none text-sm"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Fields List */}
+          <div className="divide-y divide-gray-800">
+            {/* Etiquetas/Tags */}
+            <div className="px-4 py-4 flex items-center gap-4">
+              <Tag size={20} className="text-gray-500" />
+              <span className="text-gray-400 text-sm flex-1">Etiquetas</span>
+            </div>
+
+            {/* Responsável/Assignee */}
+            <div className="px-4 py-4">
+              <div className="flex items-center gap-4 mb-2">
+                <User size={20} className="text-gray-500" />
+                <span className="text-gray-400 text-sm flex-1">Responsável</span>
+              </div>
+              <div className="ml-9">
+                <MemberSelect
+                  members={users}
+                  selectedId={assignedToId}
+                  onChange={setAssignedToId}
+                  loading={loadingUsers}
+                  placeholder="Atribuir a..."
+                  allowUnassigned={true}
+                  unassignedLabel="Sem responsável"
+                />
+              </div>
+            </div>
+
+            {/* Data de início */}
+            <div className="px-4 py-4 flex items-center gap-4">
+              <Clock size={20} className="text-gray-500" />
+              <div className="flex-1">
+                <span className="text-gray-400 text-sm block mb-1">Data de início</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="bg-transparent text-white text-sm focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Data de entrega */}
+            <div className="px-4 py-4 flex items-center gap-4">
+              <Calendar size={20} className="text-gray-500" />
+              <div className="flex-1">
+                <span className="text-gray-400 text-sm block mb-1">Data de entrega</span>
+                <input
+                  type="date"
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                  className="bg-transparent text-white text-sm focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Tempo Estimado */}
+            <div className="px-4 py-4 flex items-center gap-4">
+              <Clock size={20} className="text-gray-500" />
+              <div className="flex-1">
+                <span className="text-gray-400 text-sm block mb-1">Tempo estimado (horas)</span>
+                <input
+                  type="number"
+                  min="0.5"
+                  step="0.5"
+                  value={estimatedTime}
+                  onChange={(e) => setEstimatedTime(e.target.value)}
+                  placeholder="Ex: 4"
+                  className="bg-transparent text-white text-sm focus:outline-none placeholder-gray-600"
+                />
+              </div>
+            </div>
+
+            {/* Nível da Tarefa */}
+            <div className="px-4 py-4">
+              <div className="flex items-center gap-4 mb-3">
+                <BarChart3 size={20} className="text-gray-500" />
+                <span className="text-gray-400 text-sm">Nível da Tarefa</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 ml-9">
+                {[
+                  { id: 'basic', label: 'Básica', pts: 50, color: 'emerald' },
+                  { id: 'medium', label: 'Média', pts: 100, color: 'amber' },
+                  { id: 'large', label: 'Grande', pts: 200, color: 'red' }
+                ].map((level) => (
+                  <button
+                    key={level.id}
+                    type="button"
+                    onClick={() => setTaskLevel(level.id as any)}
+                    className={`py-2.5 px-2 rounded-xl text-center transition-all ${
+                      taskLevel === level.id
+                        ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                  >
+                    <div className="text-xs font-medium mb-0.5">{level.label}</div>
+                    <div className="text-xs opacity-80">{level.pts} 🪙</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Anexos */}
+            <div className="px-4 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Paperclip size={20} className="text-gray-500" />
+                <span className="text-gray-400 text-sm">Anexos</span>
+              </div>
+              <button className="text-primary">
+                <span className="text-xl">+</span>
+              </button>
+            </div>
+
+            {/* Checklists */}
+            <div className="px-4 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <CheckSquare size={20} className="text-gray-500" />
+                <span className="text-gray-400 text-sm">Checklists</span>
+              </div>
+              <button className="text-primary">
+                <span className="text-xl">+</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mx-4 my-4 p-4 bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Fixed Bottom Action Bar */}
+        <div className="fixed bottom-0 left-0 right-0 bg-background-dark border-t border-gray-800 px-4 py-3 flex items-center gap-3">
+          <div className="flex-1 flex items-center gap-3 bg-gray-800 rounded-xl px-4 py-3">
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold">
+              {user?.name?.charAt(0) || 'U'}
+            </div>
+            <span className="text-gray-400 text-sm">Adicionar comentário</span>
+          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || !title || !projectId}
+            className="p-3 bg-primary rounded-xl text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitting ? <Clock size={20} className="animate-spin" /> : <Check size={20} />}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop Layout (Original)
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
       <button
