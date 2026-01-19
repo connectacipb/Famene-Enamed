@@ -14,11 +14,14 @@ import {
     Star,
     Code,
     Camera,
-    X
+    X,
+    ArrowRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getProfile, updateUser, uploadAvatar } from '../services/user.service';
 import toast from 'react-hot-toast';
+
+import { Skeleton } from '../components/Skeleton';
 
 const ProfileScreen = () => {
     const navigate = useNavigate();
@@ -125,8 +128,68 @@ const ProfileScreen = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <Loader className="animate-spin text-primary" size={32} />
+            <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+                {/* Header Skeleton */}
+                <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-8 relative overflow-hidden">
+                    <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                        <Skeleton variant="circular" width={112} height={112} className="shrink-0" />
+                        <div className="flex-1 space-y-4 w-full">
+                            <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                <Skeleton variant="text" width={200} height={32} />
+                                <Skeleton variant="rectangular" width={100} height={24} className="rounded-full" />
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center mb-1">
+                                    <Skeleton variant="text" width={150} height={12} />
+                                    <Skeleton variant="text" width={80} height={12} />
+                                </div>
+                                <Skeleton variant="rectangular" width="100%" height={8} className="rounded-full" />
+                            </div>
+                            <Skeleton variant="text" width="80%" height={16} />
+                            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                                <Skeleton variant="rectangular" width={60} height={24} className="rounded" />
+                                <Skeleton variant="rectangular" width={80} height={24} className="rounded" />
+                                <Skeleton variant="rectangular" width={70} height={24} className="rounded" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Stats Grid Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="bg-white dark:bg-surface-dark rounded-xl p-5 border border-slate-200 dark:border-slate-700 flex items-center gap-4">
+                            <Skeleton variant="rectangular" width={48} height={48} className="rounded-lg shrink-0" />
+                            <div className="space-y-2 flex-1">
+                                <Skeleton variant="text" width="40%" height={12} />
+                                <Skeleton variant="text" width="70%" height={20} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Projects Section Skeleton */}
+                <div>
+                    <div className="flex justify-between items-center mb-6">
+                        <Skeleton variant="text" width={180} height={28} />
+                        <Skeleton variant="rectangular" width={120} height={40} className="hidden sm:block rounded-xl" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                                <Skeleton variant="rectangular" width="100%" height={160} />
+                                <div className="p-5 space-y-3">
+                                    <Skeleton variant="text" width="80%" height={24} />
+                                    <Skeleton variant="text" width="100%" height={16} />
+                                    <Skeleton variant="text" width="100%" height={16} />
+                                    <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-800">
+                                        <Skeleton variant="rectangular" width="100%" height={40} className="rounded-lg" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -178,7 +241,7 @@ const ProfileScreen = () => {
                         <div className="mt-1 mb-4 max-w-sm mx-auto md:mx-0">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[12px] font-bold uppercase tracking-wider text-slate-400 mb-1 gap-1 sm:gap-0">
                                 <span>Progresso para Nível{' '}{(user?.level || 1) + 1}:</span>
-                                <span className="text-primary text-xs">{user?.connectaPoints || 0} / {((user?.level || 1) * 1000)} XP</span>
+                                <span className="text-primary text-xs">{user?.connectaPoints || 0} / {((user?.level || 1) * 1000)} 🪙</span>
                             </div>
                             <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-700/50 shadow-inner">
                                 <div
@@ -306,7 +369,7 @@ const ProfileScreen = () => {
                                 className="px-8 py-2.5 rounded-lg bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:bg-blue-600 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 disabled:opacity-50"
                             >
                                 {saving ? <Loader className="animate-spin" size={28} /> : <Save size={28} />}
-                                Salvar Alterações
+                                Salvar
                             </button>
                         </div>
                     </form>
@@ -333,8 +396,8 @@ const ProfileScreen = () => {
                                 <Zap size={24} />
                             </div>
                             <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">XP Atual</p>
-                                <p className="text-xl font-bold text-slate-900 dark:text-white">{user?.connectaPoints || 0} XP</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">🪙 Atual</p>
+                                <p className="text-xl font-bold text-slate-900 dark:text-white">{user?.connectaPoints || 0} 🪙</p>
                             </div>
                         </div>
 
@@ -353,11 +416,18 @@ const ProfileScreen = () => {
                     <div>
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Projetos atuais: </h3>
-                            <button onClick={() => navigate('/projects')} className="text-sm text-primary hover:text-sky-400 font-bold">Ver todos</button>
+                            <button 
+                                onClick={() => navigate('/projects')} 
+                                className="hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-white transition-all duration-300 group shadow-sm active:scale-95 min-w-[120px]"
+                            >
+                                Ver todos
+                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                            </button>
                         </div>
 
                         {user?.memberOfProjects && user.memberOfProjects.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {user.memberOfProjects.map((membership: any) => (
                                     <div key={membership.project.id} className="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col group cursor-pointer" onClick={() => navigate(`/project-details/${membership.project.id}`)}>
                                         <div className="h-32 md:h-40 bg-slate-100 dark:bg-slate-800 relative flex items-center justify-center overflow-hidden">
@@ -385,6 +455,18 @@ const ProfileScreen = () => {
                                     </div>
                                 ))}
                             </div>
+                            
+                            {/* Mobile View All Button */}
+                            <div className="mt-6 sm:hidden">
+                                <button 
+                                    onClick={() => navigate('/projects')} 
+                                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl text-sm font-bold hover:bg-primary hover:text-white transition-all duration-300 group shadow-sm active:scale-95"
+                                >
+                                    Ver todos
+                                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </div>
+                            </>
                         ) : (
                             <div className="p-12 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl text-center">
                                 <User size={48} className="text-slate-400 mx-auto mb-4 opacity-50" />

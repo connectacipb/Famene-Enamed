@@ -4,9 +4,9 @@ import { TaskStatus } from '@prisma/client';
 
 export const createTaskSchema = z.object({
   body: z.object({
-    title: z.string().min(3, 'Task title must be at least 3 characters long'),
+    title: z.string().min(1, 'Task title must be at least 1 character long'),
     description: z.string().optional(),
-    difficulty: z.number().int('Difficulty must be an integer').min(1, 'Difficulty must be between 1 and 10').max(10, 'Difficulty must be between 1 and 10'),
+    difficulty: z.number().int('Difficulty must be an integer').min(1, 'Difficulty must be between 1 and 10').max(10, 'Difficulty must be between 1 and 10').optional().default(2),
     estimatedTimeMinutes: z.coerce.number().int('Estimated time must be an integer').min(1, 'Estimated time must be at least 1 minute').optional().nullable(),
     projectId: uuidSchema,
     columnId: optionalUuidSchema,
@@ -15,6 +15,11 @@ export const createTaskSchema = z.object({
     tags: z.array(z.string()).optional(),
     requiredTierId: optionalUuidSchema,
     isExternalDemand: z.boolean().optional(),
+    // Novos campos estilo Trello
+    startDate: z.string().datetime().optional().nullable(),
+    durationMinutes: z.coerce.number().int().min(1).optional().nullable(),
+    attachmentUrl: z.string().optional().nullable(), // Aceita qualquer string como link
+    assigneeIds: z.array(uuidSchema).optional(),
   }),
 });
 
@@ -29,8 +34,8 @@ export const updateTaskSchema = z.object({
     id: uuidSchema,
   }),
   body: z.object({
-    title: z.string().min(3, 'Task title must be at least 3 characters long').optional(),
-    description: z.string().optional(),
+    title: z.string().min(1, 'Task title must be at least 1 character long').optional(),
+    description: z.string().optional().nullable(),
     status: z.nativeEnum(TaskStatus).optional(),
     difficulty: z.number().int('Difficulty must be an integer').min(1, 'Difficulty must be between 1 and 10').max(10, 'Difficulty must be between 1 and 10').optional(),
     estimatedTimeMinutes: z.coerce.number().int('Estimated time must be an integer').min(1, 'Estimated time must be at least 1 minute').optional().nullable(),
@@ -39,6 +44,12 @@ export const updateTaskSchema = z.object({
     tags: z.array(z.string()).optional(),
     requiredTierId: optionalUuidSchema,
     isExternalDemand: z.boolean().optional(),
+    columnId: optionalUuidSchema,
+    // Novos campos estilo Trello
+    startDate: z.string().datetime().optional().nullable(),
+    durationMinutes: z.coerce.number().int().min(1).optional().nullable(),
+    attachmentUrl: z.string().optional().nullable(), // Aceita qualquer string como link
+    assigneeIds: z.array(uuidSchema).optional(),
   }).partial(),
 });
 

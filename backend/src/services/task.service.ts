@@ -1,5 +1,5 @@
 import { Prisma, Task, TaskStatus, Role, ActivityType } from '@prisma/client';
-import { createTask, findTaskById, updateTask, deleteTask, findTasksByProjectId, findUserTasks } from '../repositories/task.repository';
+import { createTask, findTaskById, updateTask, deleteTask, findTasksByProjectId, findUserTasks, syncTaskAssignees } from '../repositories/task.repository';
 import { findUserById } from '../repositories/user.repository';
 import { findProjectById, isUserProjectMember } from '../repositories/project.repository';
 import { createActivityLog } from '../repositories/activityLog.repository';
@@ -8,15 +8,10 @@ import { addPointsForTaskCompletion, updateStreakForUser } from './gamification.
 import { checkAndAwardAchievements } from './achievement.service';
 import prisma from '../utils/prisma';
 
-const DIFFICULTY_POINTS_MULTIPLIER = 5;
-const POINTS_PER_MINUTE = 0.5;
-
-const calculateTaskPoints = (difficulty: number, estimatedTimeMinutes?: number | null): number => {
-  let totalPoints = difficulty * DIFFICULTY_POINTS_MULTIPLIER;
-  if (estimatedTimeMinutes && estimatedTimeMinutes > 0) {
-    totalPoints += Math.floor(estimatedTimeMinutes * POINTS_PER_MINUTE);
-  }
-  return totalPoints;
+const calculateTaskPoints = (difficulty: number): number => {
+  if (difficulty <= 1) return 50;
+  if (difficulty === 2) return 100;
+  return 200; // Dificuldade 3 ou superior
 };
 
 export const createNewTask = async (data: CreateTaskInput, createdById: string) => {
@@ -44,30 +39,47 @@ export const createNewTask = async (data: CreateTaskInput, createdById: string) 
     }
   }
 
-  const pointsReward = calculateTaskPoints(data.difficulty, data.estimatedTimeMinutes);
+  const difficulty = data.difficulty || 2;
+  const pointsReward = calculateTaskPoints(difficulty);
 
   const taskResult = await prisma.$transaction(async (tx) => {
     const task = await createTask({
       title: data.title,
       description: data.description,
-      difficulty: data.difficulty,
+      difficulty,
       estimatedTimeMinutes: data.estimatedTimeMinutes,
       pointsReward,
       dueDate: data.dueDate,
       tags: data.tags,
       isExternalDemand,
+      // Novos campos estilo Trello
+      startDate: data.startDate,
+      durationMinutes: data.durationMinutes,
+      attachmentUrl: data.attachmentUrl || null,
       createdBy: { connect: { id: createdById } },
       project: { connect: { id: data.projectId } },
       assignedTo: data.assignedToId ? { connect: { id: data.assignedToId } } : undefined,
       KanbanColumn: data.columnId ? ({ connect: { id: data.columnId } } as any) : undefined,
       requiredTier: data.requiredTierId ? { connect: { id: data.requiredTierId } } : undefined,
-    }, tx);
+    } as any, tx);
+
+    // Sincronizar múltiplos assignees se fornecidos
+    if (data.assigneeIds && data.assigneeIds.length > 0) {
+      await syncTaskAssignees(task.id, data.assigneeIds, tx);
+    }
 
     await createActivityLog({
       user: { connect: { id: createdById } },
       type: ActivityType.TASK_CREATED,
       description: `Created task "${task.title}" for project "${project.title}"${isExternalDemand ? ' (External Demand)' : ''}.`,
     }, tx);
+
+    // Dar pontos por CRIAR a task (pointsPerOpenTask)
+    const pointsForCreation = (project as any).pointsPerOpenTask ?? 50;
+    if (pointsForCreation > 0) {
+      await addPointsForTaskCompletion(createdById, pointsForCreation, task.id, tx);
+      console.log(`[POINTS] Added ${pointsForCreation} points to user ${createdById} for CREATING task`);
+    }
 
     return task;
   });
@@ -98,11 +110,12 @@ export const updateTaskDetails = async (id: string, data: UpdateTaskInput, reque
     throw { statusCode: 404, message: 'Task\'s project not found.' };
   }
 
-  const isMember = await isUserProjectMember(task.projectId, requestingUserId);
-  const isAuthorized = requestingUserRole === Role.ADMIN || project.leaderId === requestingUserId || task.assignedToId === requestingUserId || isMember;
-  if (!isAuthorized) {
-    throw { statusCode: 403, message: 'You are not authorized to update this task.' };
-  }
+  /* Permissão removida conforme solicitação: qualquer usuário autenticado pode editar */
+  // const isMember = await isUserProjectMember(task.projectId, requestingUserId);
+  // const isAuthorized = requestingUserRole === Role.ADMIN || project.leaderId === requestingUserId || task.assignedToId === requestingUserId || isMember;
+  // if (!isAuthorized) {
+  //   throw { statusCode: 403, message: 'You are not authorized to update this task.' };
+  // }
 
   if (data.assignedToId && data.assignedToId !== task.assignedToId) {
     const assignedToUser = await findUserById(data.assignedToId);
@@ -115,16 +128,61 @@ export const updateTaskDetails = async (id: string, data: UpdateTaskInput, reque
     }
   }
 
-  return prisma.$transaction(async (tx) => {
-    const updateData: Prisma.TaskUpdateInput = { ...data };
+  // Extrair assigneeIds do data antes de passar para o Prisma
+  const { assigneeIds, ...taskData } = data as any;
 
-    if (data.difficulty !== undefined || data.estimatedTimeMinutes !== undefined) {
-      const newDifficulty = data.difficulty !== undefined ? data.difficulty : task.difficulty;
-      const newEstimatedTime = data.estimatedTimeMinutes !== undefined ? data.estimatedTimeMinutes : task.estimatedTimeMinutes;
-      updateData.pointsReward = calculateTaskPoints(newDifficulty, newEstimatedTime);
+  return prisma.$transaction(async (tx) => {
+    const updateData: any = { ...taskData };
+
+    // Limpar attachmentUrl se vier vazio
+    if (updateData.attachmentUrl === '') {
+      updateData.attachmentUrl = null;
+    }
+
+    if (data.difficulty !== undefined) {
+      updateData.pointsReward = calculateTaskPoints(data.difficulty);
+    }
+
+    // Tratar columnId para conexão
+    if (taskData.columnId !== undefined) {
+      if (taskData.columnId) {
+        updateData.KanbanColumn = { connect: { id: taskData.columnId } };
+      } else {
+        updateData.KanbanColumn = { disconnect: true };
+      }
+      delete updateData.columnId;
     }
 
     const updatedTask = await updateTask(id, updateData, tx);
+
+    // Sincronizar múltiplos assignees se fornecidos
+    if (assigneeIds !== undefined) {
+      // PONTUAÇÃO RETROATIVA: Se a task está concluída, dar/remover pontos
+      const isCompleted = task.completedAt !== null;
+      
+      if (isCompleted) {
+        const pointsForCompletion = (project as any).pointsPerCompletedTask ?? 100;
+        const currentAssigneeIds = (task as any).assignees?.map((a: any) => a.user?.id || a.userId) || [];
+        const newAssigneeIds = assigneeIds || [];
+        
+        // Quem foi ADICIONADO ganha pontos
+        const addedAssignees = newAssigneeIds.filter((id: string) => !currentAssigneeIds.includes(id));
+        for (const userId of addedAssignees) {
+          await addPointsForTaskCompletion(userId, pointsForCompletion, task.id, tx);
+          console.log(`[RETROACTIVE] Added ${pointsForCompletion} points to user ${userId} for being added to completed task`);
+        }
+        
+        // Quem foi REMOVIDO perde pontos
+        const removedAssignees = currentAssigneeIds.filter((id: string) => !newAssigneeIds.includes(id));
+        const { removePointsForTaskUncompletion } = await import('./gamification.service');
+        for (const userId of removedAssignees) {
+          await removePointsForTaskUncompletion(userId, pointsForCompletion, task.id, tx);
+          console.log(`[RETROACTIVE] Removed ${pointsForCompletion} points from user ${userId} for being removed from completed task`);
+        }
+      }
+      
+      await syncTaskAssignees(id, assigneeIds || [], tx);
+    }
 
     if (data.assignedToId && data.assignedToId !== task.assignedToId) {
       const assignedUser = data.assignedToId ? await findUserById(data.assignedToId) : null;
@@ -156,13 +214,14 @@ export const moveTaskStatus = async (id: string, data: MoveTaskInput, requesting
 
   const isMember = await isUserProjectMember(task.projectId, requestingUserId);
 
-  if (!isAdmin && !isProjectLeader && !isAssignedUser && !isMember) {
-    throw { statusCode: 403, message: 'You are not authorized to move this task.' };
-  }
+  /* Permissão removida conforme solicitação: qualquer usuário autenticado pode mover */
+  // if (!isAdmin && !isProjectLeader && !isAssignedUser && !isMember) {
+  //   throw { statusCode: 403, message: 'You are not authorized to move this task.' };
+  // }
 
-  if (data.newStatus === TaskStatus.done && !isAdmin && !isProjectLeader && !isMember) {
-    throw { statusCode: 403, message: 'Only project members, leaders or administrators can mark tasks as DONE.' };
-  }
+  // if (data.newStatus === TaskStatus.done && !isAdmin && !isProjectLeader && !isMember) {
+  //   throw { statusCode: 403, message: 'Only project members, leaders or administrators can mark tasks as DONE.' };
+  // }
 
   if (task.status === data.newStatus) {
     return task;

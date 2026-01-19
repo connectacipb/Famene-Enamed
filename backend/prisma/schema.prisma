@@ -39,25 +39,28 @@ model User {
   tier                Tier               @relation(fields: [tierId], references: [id])
   userAchievements    UserAchievement[]
   comments            Comment[]
+  taskAssignments     TaskAssignee[]     @relation("TaskAssignees")
 }
 
 model Project {
-  id           String          @id @default(uuid())
-  title        String          @unique
-  description  String?
-  category     String?
-  leaderId     String
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  status       String?         @default("active")
-  progress     Int             @default(0)
-  xpReward     Int             @default(100)
-  color        String?
-  coverUrl     String?
-  KanbanColumn KanbanColumn[]
-  leader       User            @relation("ProjectLeader", fields: [leaderId], references: [id], onDelete: Cascade)
-  members      ProjectMember[]
-  tasks        Task[]
+  id                     String          @id @default(uuid())
+  title                  String          @unique
+  description            String?
+  category               String?
+  leaderId               String
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  status                 String?         @default("active")
+  progress               Int             @default(0)
+  xpReward               Int             @default(100)
+  color                  String?
+  coverUrl               String?
+  pointsPerOpenTask      Int             @default(50)
+  pointsPerCompletedTask Int             @default(100)
+  KanbanColumn           KanbanColumn[]
+  leader                 User            @relation("ProjectLeader", fields: [leaderId], references: [id], onDelete: Cascade)
+  members                ProjectMember[]
+  tasks                  Task[]
 }
 
 model ProjectMember {
@@ -89,12 +92,17 @@ model Task {
   projectId            String
   difficulty           Int
   columnId             String?
+  // Novos campos para estilo Trello
+  startDate            DateTime?
+  durationMinutes      Int?
+  attachmentUrl        String?
   assignedTo           User?         @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
   KanbanColumn         KanbanColumn? @relation(fields: [columnId], references: [id])
   createdBy            User          @relation("CreatedTasks", fields: [createdById], references: [id], onDelete: Cascade)
   project              Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   requiredTier         Tier?         @relation("RequiredTier", fields: [requiredTierId], references: [id])
   comments             Comment[]
+  assignees            TaskAssignee[]
 }
 
 model Tier {
@@ -176,15 +184,16 @@ model Order {
 }
 
 model KanbanColumn {
-  id        String     @id @default(uuid())
-  title     String
-  order     Int        @default(0)
-  projectId String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  status    TaskStatus @default(todo)
-  Project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  Task      Task[]
+  id                 String     @id @default(uuid())
+  title              String
+  order              Int        @default(0)
+  projectId          String
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  status             TaskStatus @default(todo)
+  isCompletionColumn Boolean    @default(false)
+  Project            Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Task               Task[]
 }
 
 model Event {
@@ -229,8 +238,12 @@ enum ActivityType {
   TASK_COMPLETED
   TASK_CREATED
   TASK_ASSIGNED
+  TASK_UNASSIGNED
   TASK_STATUS_CHANGED
   TASK_DELETED
+  TASK_DATES_CHANGED
+  TASK_DURATION_CHANGED
+  TASK_ATTACHMENT_ADDED
   POINTS_ADJUSTED
   TIER_ACHIEVED
   STREAK_UPDATED
@@ -260,4 +273,16 @@ model Comment {
 
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TaskAssignee {
+  id         String   @id @default(uuid())
+  taskId     String
+  userId     String
+  assignedAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation("TaskAssignees", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
 }

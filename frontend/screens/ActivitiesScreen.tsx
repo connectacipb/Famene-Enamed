@@ -179,7 +179,7 @@ const ActivitiesScreen = () => {
               <div className="bg-red-100 dark:bg-red-900/20 p-2 rounded-lg text-red-600 dark:text-red-400">
                 <AlertCircle size={20} />
               </div>
-              <h2 className="text-xl font-bold text-secondary dark:text-white">Perto do Prazo (Minhas Tarefas)</h2>
+              <h2 className="text-xl font-bold text-secondary dark:text-white">Minhas Tarefas</h2>
             </div>
 
             <div className="space-y-4">

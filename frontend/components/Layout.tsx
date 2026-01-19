@@ -100,7 +100,17 @@ const Layout = () => {
             }
         };
         fetchUser();
-    }, []);
+
+        // Listener para atualizar pontos instantaneamente
+        const handlePointsUpdated = () => {
+            fetchUser();
+        };
+        window.addEventListener('pointsUpdated', handlePointsUpdated);
+        
+        return () => {
+            window.removeEventListener('pointsUpdated', handlePointsUpdated);
+        };
+    }, [location.pathname]); // Recarrega quando a rota muda
 
     return (
         <div className="flex h-screen bg-background-light dark:bg-background-dark text-slate-800 dark:text-gray-100 font-sans transition-colors duration-300 overflow-hidden">
@@ -147,7 +157,7 @@ const Layout = () => {
                                 <>
                                     <p className="text-sm font-bold text-secondary dark:text-white truncate">{user?.name || 'Visitante'}</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                        {typeof user?.tier === 'object' ? user.tier.name : (user?.tier || 'Iniciante')} • {user?.connectaPoints || 0} XP
+                                        {typeof user?.tier === 'object' ? user.tier.name : (user?.tier || 'Iniciante')} • {user?.connectaPoints || 0} 🪙
                                     </p>
                                 </>
                             )}
@@ -185,7 +195,10 @@ const Layout = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 relative group">
+                        <button 
+                            onClick={() => navigate('/activities')}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 relative group"
+                        >
                             <Bell size={20} />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border border-white dark:border-surface-dark"></span>
                         </button>

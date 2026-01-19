@@ -97,7 +97,7 @@ export const getProjectDetails = async (req: Request, res: Response, next: NextF
 export const updateProject = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { title, name, description, category, coverUrl, status, color, xpReward } = req.body;
+        const { title, name, description, category, coverUrl, status, color, xpReward, pointsPerOpenTask, pointsPerCompletedTask } = req.body;
         const userId = (req as any).user?.userId;
 
         
@@ -109,10 +109,11 @@ export const updateProject = async (req: Request, res: Response, next: NextFunct
             return res.status(404).json({ message: 'Projeto não encontrado' });
         }
 
-        if (project.leaderId !== userId && (req as any).user?.role !== Role.ADMIN) {
-            console.error(`[UPDATE PROJECT] Permission denied for user ${userId} on project ${id}`);
-            return res.status(403).json({ message: 'Apenas o líder do projeto ou um administrador podem alterar os detalhes.' });
-        }
+        /* Permissão removida conforme solicitação: qualquer usuário autenticado pode editar */
+        // if (project.leaderId !== userId && (req as any).user?.role !== Role.ADMIN) {
+        //     console.error(`[UPDATE PROJECT] Permission denied for user ${userId} on project ${id}`);
+        //     return res.status(403).json({ message: 'Apenas o líder do projeto ou um administrador podem alterar os detalhes.' });
+        // }
 
         const data: any = {};
         if (title !== undefined) data.title = title;
@@ -123,6 +124,10 @@ export const updateProject = async (req: Request, res: Response, next: NextFunct
         if (status !== undefined) data.status = status;
         if (color !== undefined) data.color = color;
         if (xpReward !== undefined) data.xpReward = xpReward;
+        if (pointsPerOpenTask !== undefined) data.pointsPerOpenTask = pointsPerOpenTask;
+        if (pointsPerCompletedTask !== undefined) data.pointsPerCompletedTask = pointsPerCompletedTask;
+
+        console.log(`[UPDATE PROJECT] Updating project ${id} with data:`, data);
 
         const updatedProject = await prisma.project.update({
             where: { id },
