@@ -74,6 +74,13 @@ export const createNewTask = async (data: CreateTaskInput, createdById: string) 
       description: `Created task "${task.title}" for project "${project.title}"${isExternalDemand ? ' (External Demand)' : ''}.`,
     }, tx);
 
+    // Dar pontos por CRIAR a task (pointsPerOpenTask)
+    const pointsForCreation = (project as any).pointsPerOpenTask ?? 50;
+    if (pointsForCreation > 0) {
+      await addPointsForTaskCompletion(createdById, pointsForCreation, task.id, tx);
+      console.log(`[POINTS] Added ${pointsForCreation} points to user ${createdById} for CREATING task`);
+    }
+
     return task;
   });
 
@@ -150,6 +157,30 @@ export const updateTaskDetails = async (id: string, data: UpdateTaskInput, reque
 
     // Sincronizar múltiplos assignees se fornecidos
     if (assigneeIds !== undefined) {
+      // PONTUAÇÃO RETROATIVA: Se a task está concluída, dar/remover pontos
+      const isCompleted = task.completedAt !== null;
+      
+      if (isCompleted) {
+        const pointsForCompletion = (project as any).pointsPerCompletedTask ?? 100;
+        const currentAssigneeIds = (task as any).assignees?.map((a: any) => a.user?.id || a.userId) || [];
+        const newAssigneeIds = assigneeIds || [];
+        
+        // Quem foi ADICIONADO ganha pontos
+        const addedAssignees = newAssigneeIds.filter((id: string) => !currentAssigneeIds.includes(id));
+        for (const userId of addedAssignees) {
+          await addPointsForTaskCompletion(userId, pointsForCompletion, task.id, tx);
+          console.log(`[RETROACTIVE] Added ${pointsForCompletion} points to user ${userId} for being added to completed task`);
+        }
+        
+        // Quem foi REMOVIDO perde pontos
+        const removedAssignees = currentAssigneeIds.filter((id: string) => !newAssigneeIds.includes(id));
+        const { removePointsForTaskUncompletion } = await import('./gamification.service');
+        for (const userId of removedAssignees) {
+          await removePointsForTaskUncompletion(userId, pointsForCompletion, task.id, tx);
+          console.log(`[RETROACTIVE] Removed ${pointsForCompletion} points from user ${userId} for being removed from completed task`);
+        }
+      }
+      
       await syncTaskAssignees(id, assigneeIds || [], tx);
     }
 

@@ -103,6 +103,41 @@ export const updateProjectDetails = async (id: string, data: UpdateProjectInput,
   }
 
   const updatedProjectResult = await prisma.$transaction(async (tx) => {
+    // PONTUAÇÃO RETROATIVA: Se pontosPerCompletedTask mudou, recalcular para tasks concluídas
+    const oldPointsPerCompleted = (project as any).pointsPerCompletedTask ?? 100;
+    const newPointsPerCompleted = (data as any).pointsPerCompletedTask;
+    
+    if (newPointsPerCompleted !== undefined && newPointsPerCompleted !== oldPointsPerCompleted) {
+      const pointsDifference = newPointsPerCompleted - oldPointsPerCompleted;
+      
+      // Buscar todas as tasks concluídas do projeto com seus assignees
+      const completedTasks = await tx.task.findMany({
+        where: { 
+          projectId: id,
+          completedAt: { not: null }
+        },
+        include: {
+          assignees: { include: { user: { select: { id: true } } } }
+        }
+      });
+      
+      console.log(`[RETROACTIVE] Points changed from ${oldPointsPerCompleted} to ${newPointsPerCompleted}. Difference: ${pointsDifference}. Found ${completedTasks.length} completed tasks.`);
+      
+      // Para cada task concluída, ajustar pontos de todos os assignees
+      for (const task of completedTasks) {
+        const assigneeIds = task.assignees.map(a => a.user.id);
+        
+        for (const userId of assigneeIds) {
+          // Ajustar pontuação do usuário diretamente
+          await tx.user.update({
+            where: { id: userId },
+            data: { connectaPoints: { increment: pointsDifference } }
+          });
+          console.log(`[RETROACTIVE] Adjusted ${pointsDifference} points for user ${userId} (task ${task.id})`);
+        }
+      }
+    }
+    
     const updatedProject = await updateProject(id, data, tx);
     return updatedProject;
   });

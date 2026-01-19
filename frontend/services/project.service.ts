@@ -12,6 +12,8 @@ export interface Project {
   color?: string;
   coverUrl?: string;
   progress: number;
+  pointsPerOpenTask?: number;
+  pointsPerCompletedTask?: number;
 }
 
 export const getProjects = async () => {

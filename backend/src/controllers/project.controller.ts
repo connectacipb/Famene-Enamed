@@ -97,7 +97,7 @@ export const getProjectDetails = async (req: Request, res: Response, next: NextF
 export const updateProject = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { title, name, description, category, coverUrl, status, color, xpReward } = req.body;
+        const { title, name, description, category, coverUrl, status, color, xpReward, pointsPerOpenTask, pointsPerCompletedTask } = req.body;
         const userId = (req as any).user?.userId;
 
         
@@ -124,6 +124,10 @@ export const updateProject = async (req: Request, res: Response, next: NextFunct
         if (status !== undefined) data.status = status;
         if (color !== undefined) data.color = color;
         if (xpReward !== undefined) data.xpReward = xpReward;
+        if (pointsPerOpenTask !== undefined) data.pointsPerOpenTask = pointsPerOpenTask;
+        if (pointsPerCompletedTask !== undefined) data.pointsPerCompletedTask = pointsPerCompletedTask;
+
+        console.log(`[UPDATE PROJECT] Updating project ${id} with data:`, data);
 
         const updatedProject = await prisma.project.update({
             where: { id },

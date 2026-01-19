@@ -100,6 +100,16 @@ const Layout = () => {
             }
         };
         fetchUser();
+
+        // Listener para atualizar pontos instantaneamente
+        const handlePointsUpdated = () => {
+            fetchUser();
+        };
+        window.addEventListener('pointsUpdated', handlePointsUpdated);
+        
+        return () => {
+            window.removeEventListener('pointsUpdated', handlePointsUpdated);
+        };
     }, [location.pathname]); // Recarrega quando a rota muda
 
     return (

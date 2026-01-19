@@ -101,7 +101,10 @@ export const moveTaskService = async (taskId: string, columnId: string, userId: 
         where: { id: taskId },
         include: { 
             project: { include: { members: true } },
-            KanbanColumn: true // Buscar coluna atual
+            KanbanColumn: true,
+            assignees: {
+                include: { user: { select: { id: true } } }
+            }
         }
     });
 
@@ -127,6 +130,10 @@ export const moveTaskService = async (taskId: string, columnId: string, userId: 
     const { addPointsForTaskCompletion, removePointsForTaskUncompletion } = await import('./gamification.service');
 
     return prisma.$transaction(async (tx) => {
+        // Buscar o projeto para obter a configuração de pontos
+        const project = await tx.project.findUnique({ where: { id: task.projectId } });
+        const pointsToAward = project?.pointsPerCompletedTask ?? 100;
+
         // Atualizar task
         const updatedTask = await tx.task.update({
             where: { id: taskId },
@@ -137,18 +144,26 @@ export const moveTaskService = async (taskId: string, columnId: string, userId: 
             }
         });
 
-        // Lógica de pontuação
-        if (task.assignedToId) {
+        // Pegar todos os IDs dos assignees - APENAS assignees recebem pontos de conclusão
+        const assigneeIds = task.assignees.map(a => a.user.id);
+        
+        // Se não tem assignees, ninguém recebe pontos de conclusão
+        const usersToAward = assigneeIds;
+
+        console.log(`[POINTS DEBUG] Task ${taskId} moved. Assignees to award:`, usersToAward, `wasCompletion: ${wasInCompletionColumn}, isCompletion: ${isGoingToCompletionColumn}`);
+
+        // Lógica de pontuação - usar pontos do projeto
+        for (const memberId of usersToAward) {
             // Caso 1: Task entrando na coluna de conclusão
             if (!wasInCompletionColumn && isGoingToCompletionColumn) {
-                await addPointsForTaskCompletion(task.assignedToId, task.pointsReward, taskId, tx);
-                console.log(`[POINTS] Added ${task.pointsReward} points to user ${task.assignedToId} for completing task`);
+                await addPointsForTaskCompletion(memberId, pointsToAward, taskId, tx);
+                console.log(`[POINTS] Added ${pointsToAward} points to user ${memberId} for completing task`);
             }
 
             // Caso 2: Task saindo da coluna de conclusão
             if (wasInCompletionColumn && !isGoingToCompletionColumn) {
-                await removePointsForTaskUncompletion(task.assignedToId, task.pointsReward, taskId, tx);
-                console.log(`[POINTS] Removed ${task.pointsReward} points from user ${task.assignedToId} for uncompleting task`);
+                await removePointsForTaskUncompletion(memberId, pointsToAward, taskId, tx);
+                console.log(`[POINTS] Removed ${pointsToAward} points from user ${memberId} for uncompleting task`);
             }
         }
 

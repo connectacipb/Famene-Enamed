@@ -16,7 +16,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 const ProjectDetailsScreen = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { project, loading: loadingProject } = useProjectDetails(id!);
+    const { project, setProject, loading: loadingProject } = useProjectDetails(id!);
     const [columns, setColumns] = useState<any>(null);
     const [loadingKanban, setLoadingKanban] = useState(true);
     const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
@@ -67,7 +67,11 @@ const ProjectDetailsScreen = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedMemberFilters, setSelectedMemberFilters] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+    const [isOpenPointsMenuOpen, setIsOpenPointsMenuOpen] = useState(false);
+    const [isCompletedPointsMenuOpen, setIsCompletedPointsMenuOpen] = useState(false);
     const filterMenuRef = useRef<HTMLDivElement>(null);
+    const openPointsMenuRef = useRef<HTMLDivElement>(null);
+    const completedPointsMenuRef = useRef<HTMLDivElement>(null);
     const [isHeaderMinimized, setIsHeaderMinimized] = useState(false);
     const kanbanRef = useRef<HTMLDivElement>(null);
 
@@ -122,15 +126,21 @@ const ProjectDetailsScreen = () => {
             if (filterMenuRef.current && !filterMenuRef.current.contains(event.target as Node)) {
                 setIsFilterMenuOpen(false);
             }
+            if (openPointsMenuRef.current && !openPointsMenuRef.current.contains(event.target as Node)) {
+                setIsOpenPointsMenuOpen(false);
+            }
+            if (completedPointsMenuRef.current && !completedPointsMenuRef.current.contains(event.target as Node)) {
+                setIsCompletedPointsMenuOpen(false);
+            }
         };
 
-        if (isFilterMenuOpen) {
+        if (isFilterMenuOpen || isOpenPointsMenuOpen || isCompletedPointsMenuOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isFilterMenuOpen]);
+    }, [isFilterMenuOpen, isOpenPointsMenuOpen, isCompletedPointsMenuOpen]);
 
     useEffect(() => {
         if (editingColumnId && inputRef.current) {
@@ -214,6 +224,7 @@ const ProjectDetailsScreen = () => {
         setIsCreatingInline(true);
         try {
             await createQuickTask(id!, inlineCreatingColumnId, inlineTaskTitle.trim());
+            window.dispatchEvent(new Event('pointsUpdated'));
             toast.success('Cartão criado!');
             setInlineCreatingColumnId(null);
             setInlineTaskTitle('');
@@ -369,6 +380,8 @@ const ProjectDetailsScreen = () => {
 
         try {
             await updateTaskStatus(draggableId, destination.droppableId);
+            // Disparar evento para atualizar pontos no menu lateral instantaneamente
+            window.dispatchEvent(new Event('pointsUpdated'));
             // Optionally fetch to sync with server (e.g. for points, history, or reordering persistence)
             // fetchKanban(); 
         } catch (err) {
@@ -706,56 +719,76 @@ const ProjectDetailsScreen = () => {
 
                 {/* Toolbar */}
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 flex-wrap">
                         {/* Points Config - Only for team members */}
                         {(user && (project?.leaderId === user.id || project?.members?.some((m: any) => m.user?.id === user.id))) && (
                             <>
                                 {/* Points per Open Task */}
-                                <div className="relative group">
-                                    <select
-                                        value={project?.pointsPerOpenTask || 50}
-                                        onChange={async (e) => {
-                                            try {
-                                                await updateProject(id!, { pointsPerOpenTask: Number(e.target.value) });
-                                                toast.success('Pontuação por abertura atualizada!');
-                                                window.location.reload();
-                                            } catch (err) {
-                                                toast.error('Erro ao atualizar pontuação');
-                                            }
-                                        }}
-                                        className="appearance-none bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 px-2 py-1 pr-6 rounded-lg text-xs font-bold cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
-                                        title="Pontos por abertura de tarefa"
+                                <div className="relative" ref={openPointsMenuRef}>
+                                    <button
+                                        onClick={() => { setIsOpenPointsMenuOpen(!isOpenPointsMenuOpen); setIsCompletedPointsMenuOpen(false); }}
+                                        className="flex items-center gap-1.5 px-2 py-1 text-xs text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                     >
-                                        <option value={25}>🪙 25 abertura</option>
-                                        <option value={50}>🪙 50 abertura</option>
-                                        <option value={100}>🪙 100 abertura</option>
-                                        <option value={200}>🪙 200 abertura</option>
-                                    </select>
-                                    <span className="material-icons absolute right-1 top-1/2 -translate-y-1/2 text-amber-500 text-xs pointer-events-none">expand_more</span>
+                                        <span>pontos por criar Task</span>
+                                        <span className="font-bold text-primary">{project?.pointsPerOpenTask || 50}</span>
+                                        <span className="material-icons text-sm text-gray-400">expand_more</span>
+                                    </button>
+                                    {isOpenPointsMenuOpen && (
+                                        <div className="absolute left-0 top-7 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                                            {[25, 50, 100, 200].map((val) => (
+                                                <button
+                                                    key={val}
+                                                    onClick={async () => {
+                                                        try {
+                                                            await updateProject(id!, { pointsPerOpenTask: val });
+                                                            setProject((prev: any) => ({ ...prev, pointsPerOpenTask: val }));
+                                                            toast.success(`Criação: ${val}`);
+                                                            setIsOpenPointsMenuOpen(false);
+                                                        } catch (err) {
+                                                            toast.error('Erro');
+                                                        }
+                                                    }}
+                                                    className={`w-full px-3 py-1 text-xs text-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${(project?.pointsPerOpenTask || 50) === val ? 'bg-primary/10 text-primary font-bold' : 'text-gray-600 dark:text-gray-300'}`}
+                                                >
+                                                    {val}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Points per Completed Task */}
-                                <div className="relative group">
-                                    <select
-                                        value={project?.pointsPerCompletedTask || 100}
-                                        onChange={async (e) => {
-                                            try {
-                                                await updateProject(id!, { pointsPerCompletedTask: Number(e.target.value) });
-                                                toast.success('Pontuação por conclusão atualizada!');
-                                                window.location.reload();
-                                            } catch (err) {
-                                                toast.error('Erro ao atualizar pontuação');
-                                            }
-                                        }}
-                                        className="appearance-none bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 px-2 py-1 pr-6 rounded-lg text-xs font-bold cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
-                                        title="Pontos por conclusão de tarefa"
+                                <div className="relative" ref={completedPointsMenuRef}>
+                                    <button
+                                        onClick={() => { setIsCompletedPointsMenuOpen(!isCompletedPointsMenuOpen); setIsOpenPointsMenuOpen(false); }}
+                                        className="flex items-center gap-1.5 px-2 py-1 text-xs text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                     >
-                                        <option value={25}>🪙 25 conclusão</option>
-                                        <option value={50}>🪙 50 conclusão</option>
-                                        <option value={100}>🪙 100 conclusão</option>
-                                        <option value={200}>🪙 200 conclusão</option>
-                                    </select>
-                                    <span className="material-icons absolute right-1 top-1/2 -translate-y-1/2 text-emerald-500 text-xs pointer-events-none">expand_more</span>
+                                        <span>pontos por conclusão</span>
+                                        <span className="font-bold text-primary">{project?.pointsPerCompletedTask || 50}</span>
+                                        <span className="material-icons text-sm text-gray-400">expand_more</span>
+                                    </button>
+                                    {isCompletedPointsMenuOpen && (
+                                        <div className="absolute left-0 top-7 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                                            {[25, 50, 100, 200].map((val) => (
+                                                <button
+                                                    key={val}
+                                                    onClick={async () => {
+                                                        try {
+                                                            await updateProject(id!, { pointsPerCompletedTask: val });
+                                                            setProject((prev: any) => ({ ...prev, pointsPerCompletedTask: val }));
+                                                            toast.success(`Conclusão: ${val}`);
+                                                            setIsCompletedPointsMenuOpen(false);
+                                                        } catch (err) {
+                                                            toast.error('Erro');
+                                                        }
+                                                    }}
+                                                    className={`w-full px-3 py-1 text-xs text-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${(project?.pointsPerCompletedTask || 50) === val ? 'bg-primary/10 text-primary font-bold' : 'text-gray-600 dark:text-gray-300'}`}
+                                                >
+                                                    {val}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </>
                         )}
@@ -1126,14 +1159,20 @@ const ProjectDetailsScreen = () => {
                 projectId={id}
                 initialColumnId={initialColumnId}
                 projectMembers={project?.members}
-                onSuccess={fetchKanban}
+                onSuccess={() => {
+                    fetchKanban();
+                    window.dispatchEvent(new Event('pointsUpdated'));
+                }}
             />
             
             {/* Modal para visualização/edição de tarefa existente (estilo Trello) */}
             <TaskDetailModal
                 isOpen={isTaskDetailsOpen}
                 onClose={() => { setIsTaskDetailsOpen(false); setSelectedTask(null); }}
-                onSuccess={fetchKanban}
+                onSuccess={() => {
+                    fetchKanban();
+                    window.dispatchEvent(new Event('pointsUpdated'));
+                }}
                 task={selectedTask}
                 projectMembers={project?.members}
                 columns={columns}

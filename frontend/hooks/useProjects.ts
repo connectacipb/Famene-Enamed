@@ -46,5 +46,5 @@ export const useProjectDetails = (id: string) => {
         }
     };
 
-    return { project, loading, error, refetch: fetchDetails };
+    return { project, setProject, loading, error, refetch: fetchDetails };
 };
