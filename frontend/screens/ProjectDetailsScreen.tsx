@@ -323,7 +323,7 @@ const ProjectDetailsScreen = () => {
         try {
             const defaultTitle = "Nova Coluna";
             // Create column with default title
-            const newColumn = await createColumn(id!, defaultTitle, columns.length);
+            const newColumn = await createColumn(id!, defaultTitle, columns?.length || 0);
 
             // Refresh kanban to get the updated list including the new column
             await fetchKanban();
