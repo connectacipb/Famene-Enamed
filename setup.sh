@@ -34,8 +34,15 @@ echo "-----------------------------------"
 cd ../frontend || exit
 
 echo "Installing frontend dependencies..."
-npm install
+npm install --legacy-peer-deps
 
+if [ ! -f .env ]; then
+  echo "Creating .env file from example..."
+  cp .env.example .env
+  echo "NOTE: Please check .env and update database credentials if necessary."
+else
+  echo ".env file already exists. Skipping creation."
+fi
 echo "-----------------------------------"
 echo "Setup Complete! You can now run the app using ./dev.sh"
 echo "-----------------------------------"

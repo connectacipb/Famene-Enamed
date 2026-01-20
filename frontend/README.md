@@ -11,7 +11,7 @@ Frontend for Connecta CI, a gamified team-management system.
 1.  **Install dependencies:**
 
     ```bash
-    npm install
+    npm install --legacy-peer-deps
     ```
 
 2.  **Environment Variables:**
