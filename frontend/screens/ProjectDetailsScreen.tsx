@@ -29,7 +29,7 @@ const ProjectDetailsScreen = () => {
     const [editingTitle, setEditingTitle] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
-    
+
     // Inline card creation state (Trello-style)
     const [inlineCreatingColumnId, setInlineCreatingColumnId] = useState<string | null>(null);
     const [inlineTaskTitle, setInlineTaskTitle] = useState('');
@@ -220,7 +220,7 @@ const ProjectDetailsScreen = () => {
     const submitInlineTask = async () => {
         if (!inlineTaskTitle.trim() || !inlineCreatingColumnId) return;
         if (isCreatingInline) return; // Prevent double submission
-        
+
         setIsCreatingInline(true);
         try {
             await createQuickTask(id!, inlineCreatingColumnId, inlineTaskTitle.trim());
@@ -486,7 +486,7 @@ const ProjectDetailsScreen = () => {
                     const hasAssignees = task.assignees && task.assignees.length > 0;
                     const isUnassigned = !hasAssignees && !task.assignedTo;
                     const matchesUnassigned = selectedMemberFilters.includes('unassigned') && isUnassigned;
-                    
+
                     // Verificar se algum dos assignees corresponde ao filtro
                     let matchesSpecific = false;
                     if (hasAssignees) {
@@ -494,7 +494,7 @@ const ProjectDetailsScreen = () => {
                     } else if (task.assignedTo) {
                         matchesSpecific = selectedMemberFilters.includes(task.assignedTo.id);
                     }
-                    
+
                     matchesMember = matchesUnassigned || matchesSpecific;
                 }
 
@@ -705,14 +705,7 @@ const ProjectDetailsScreen = () => {
                                     </div>
                                 </div>
                             </div>
-                            {/* Desktop only: Nova Tarefa na posição original */}
-                            <button
-                                onClick={() => { setInitialColumnId(undefined); setIsNewTaskModalOpen(true); }}
-                                className="hidden lg:flex bg-primary hover:bg-sky-400 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-lg shadow-primary/30 transition-all items-center gap-1"
-                            >
-                                <span className="material-icons text-sm">add</span>
-                                Nova Tarefa
-                            </button>
+
                         </div>
                     </div>
                 </div>
@@ -792,15 +785,8 @@ const ProjectDetailsScreen = () => {
                                 </div>
                             </>
                         )}
-                        
-                        {/* Mobile only: Nova Tarefa */}
-                        <button
-                            onClick={() => { setInitialColumnId(undefined); setIsNewTaskModalOpen(true); }}
-                            className="lg:hidden bg-primary hover:bg-sky-400 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-lg shadow-primary/30 transition-all flex items-center gap-1"
-                        >
-                            <span className="material-icons text-sm">add</span>
-                            Nova Tarefa
-                        </button>
+
+
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="relative">
@@ -888,7 +874,7 @@ const ProjectDetailsScreen = () => {
 
                         {/* Alterar Capa - Apenas para líder/admin */}
                         {isLeaderOrAdmin && (
-                            <label 
+                            <label
                                 className="cursor-pointer bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors border border-gray-200 dark:border-gray-700 relative z-20"
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -896,12 +882,12 @@ const ProjectDetailsScreen = () => {
                                     if (input && !uploadingCover) input.click();
                                 }}
                             >
-                                <input 
-                                    type="file" 
-                                    className="hidden absolute inset-0 opacity-0 w-0 h-0" 
-                                    accept="image/*" 
-                                    onChange={handleCoverUpload} 
-                                    disabled={uploadingCover} 
+                                <input
+                                    type="file"
+                                    className="hidden absolute inset-0 opacity-0 w-0 h-0"
+                                    accept="image/*"
+                                    onChange={handleCoverUpload}
+                                    disabled={uploadingCover}
                                 />
                                 {uploadingCover ? (
                                     <Loader className="animate-spin" size={14} />
@@ -1087,7 +1073,7 @@ const ProjectDetailsScreen = () => {
                                                                     </Draggable>
                                                                 ))}
                                                                 {provided.placeholder}
-                                                                
+
                                                                 {/* Inline card creation (Trello-style) */}
                                                                 {inlineCreatingColumnId === column.id ? (
                                                                     <div className="bg-white dark:bg-surface-dark p-2 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
@@ -1164,7 +1150,7 @@ const ProjectDetailsScreen = () => {
                     window.dispatchEvent(new Event('pointsUpdated'));
                 }}
             />
-            
+
             {/* Modal para visualização/edição de tarefa existente (estilo Trello) */}
             <TaskDetailModal
                 isOpen={isTaskDetailsOpen}
