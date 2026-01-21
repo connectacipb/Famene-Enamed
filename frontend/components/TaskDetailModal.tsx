@@ -434,7 +434,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     await saveAttachments(updated);
   };
   
-  const toggleAssignee = async (user: any, type: string = 'IMPLEMENTER') => {
+  const toggleAssignee = async (user: any, type: string ) => {
     // Check if user is assigned specifically as this type
     const isAssigned = assignees.some(a => a.user.id === user.id && a.type === type);
     
@@ -627,7 +627,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       </button>
                     </div>
                     {showMemberPicker && (
-                      <button onClick={() => toggleAssignee(assignee.user)} className="p-1 hover:text-red-400"><X size={12}/></button>
+                      <button onClick={() => toggleAssignee(assignee.user,assignee.type)} className="p-1 hover:text-red-400"><X size={12}/></button>
                     )}
                   </div>
                 ))}
@@ -641,7 +641,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       return (
                         <button 
                           key={user.id} 
-                          onClick={() => toggleAssignee(user)} 
+                          onClick={() => toggleAssignee(user,member.type)} 
                           className={`flex items-center gap-2 p-2 rounded-lg border text-left transition-all ${isAssigned ? 'bg-primary/10 border-primary/50' : 'bg-gray-50/50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700'}`}
                         >
                            <img src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}&background=random`} className="w-6 h-6 rounded-full" />
@@ -910,7 +910,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                        )}
                        <div className="flex flex-wrap items-center gap-1">
                          {membersOfType.map(({ user, type }: any) => (
-                           <div key={user.id} className="relative group" onClick={() => toggleAssignee(user)}>
+                           <div key={user.id} className="relative group" onClick={() => toggleAssignee(user,type)}>
                              <img src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}&background=random`} alt={user.name} className="w-7 h-7 rounded-full border-2 border-white dark:border-surface-dark cursor-pointer hover:opacity-80" title={user.name} />
                              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                <X size={8} className="text-white" />
