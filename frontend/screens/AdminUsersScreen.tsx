@@ -154,7 +154,7 @@ const AdminUsersScreen = () => {
                                     <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-white/5">
                                         <td className="px-6 py-4 flex items-center gap-3">
                                             <img
-                                                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}`}
+                                                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}&background=${user.avatarColor}`}
                                                 className="w-8 h-8 rounded-full"
                                             />
                                             {user.name}
