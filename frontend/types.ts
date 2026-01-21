@@ -110,6 +110,11 @@ export interface Notification {
   createdAt: string;
 }
 
+export enum AssigneeType {
+  IMPLEMENTER = 'IMPLEMENTER',
+  REVIEWER = 'REVIEWER',
+  CREATOR = 'CREATOR'
+}
 export type GetAdminLogsParams = {
   page?: number;
   limit?: number;
