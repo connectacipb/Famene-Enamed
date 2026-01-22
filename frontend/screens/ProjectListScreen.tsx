@@ -105,7 +105,7 @@ const ProjectListScreen = () => {
 
   return (
     <div className="min-h-full">
-      <div className="relative pt-12 pb-12 px-4 sm:px-6 lg:px-8 bg-surface-light dark:bg-surface-dark rounded-3xl mx-4 sm:mx-8 mt-4 shadow-sm border border-gray-100 dark:border-gray-800">
+      <div className="relative z-30 pt-12 pb-12 px-4 sm:px-6 lg:px-8 bg-surface-light dark:bg-surface-dark rounded-3xl mx-4 sm:mx-8 mt-4 shadow-sm border border-gray-100 dark:border-gray-800">
         <div className="absolute inset-0 z-0 bg-network-pattern opacity-100 dark:opacity-30 overflow-hidden rounded-3xl"></div>
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-6">
           <div>
@@ -142,7 +142,7 @@ const ProjectListScreen = () => {
               </button>
 
               {isFilterOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-surface-dark rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 py-2 animate-in fade-in zoom-in duration-200">
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-surface-dark rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-[100] py-2 animate-in fade-in zoom-in duration-200">
                   <div className="px-3 py-1 mb-1">
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status de Participação</span>
                   </div>
