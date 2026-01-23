@@ -249,7 +249,7 @@ const ProjectDetailsScreenMobile = () => {
                                     {(task.assignees?.length > 0) ? (
                                         <div className="flex -space-x-2">
                                             {task.assignees.map((a: any, i: number) => (
-                                                <img key={i} src={a.user?.avatarUrl} className="w-6 h-6 rounded-full border border-white" />
+                                                <img key={i} src={a.user?.avatarUrl || `https://ui-avatars.com/api/?name=${a.user?.name || 'User'}&background=random`} className="w-6 h-6 rounded-full border border-white" />
                                             ))}
                                         </div>
                                     ) : (

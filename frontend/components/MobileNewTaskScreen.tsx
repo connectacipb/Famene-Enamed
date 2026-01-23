@@ -5,7 +5,6 @@ import MemberSelect from './MemberSelect';
 interface MobileNewTaskScreenProps {
     navigate: any;
     location: any;
-    // Removed isEditing
     user: any;
     projects: any[];
     loadingProjects: boolean;
@@ -95,34 +94,7 @@ const MobileNewTaskScreen: React.FC<MobileNewTaskScreenProps> = (props) => {
                     </div>
                 </div>
 
-                {/* Project Selection */}
-                {!location.state?.projectId && (
-                    <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                                <Folder size={16} className="text-white" />
-                            </div>
-                            <div>
-                                <p className="text-white font-medium text-sm">
-                                    {selectedProject?.title || 'Selecionar Projeto'}
-                                </p>
-                                <p className="text-gray-500 text-xs">Produção</p>
-                            </div>
-                        </div>
-                        <select
-                            value={projectId}
-                            onChange={(e) => setProjectId(e.target.value)}
-                            className="bg-transparent text-primary text-sm font-medium cursor-pointer focus:outline-none"
-                        >
-                            <option value="" className="bg-gray-900">Mover</option>
-                            {projects.map((project: any) => (
-                                <option key={project.id} value={project.id} className="bg-gray-900">
-                                    {project.title}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
+
 
                 {/* Quick Actions Section */}
                 <div className="border-b border-gray-800">
