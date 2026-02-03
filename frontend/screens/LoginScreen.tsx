@@ -119,7 +119,7 @@ const LoginScreen = () => {
             Transforme seus projetos em <span className="text-primary">conquistas</span>
           </h2>
           <p className="text-gray-300 text-lg leading-relaxed mb-8">
-            Acesse o ecossistema MedTrack 360 para gerenciar suas atividades, colaborar com equipes e acompanhar seu progresso gamificado.
+            Trilhas, mentoria e métricas para evolução contínua.
           </p>
         </div>
       </div>
@@ -131,7 +131,7 @@ const LoginScreen = () => {
             <div className="mb-10 group cursor-pointer inline-flex items-center gap-3 px-5 py-3.5 rounded-md bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white dark:border-white/10 shadow-xl shadow-primary/10 hover:shadow-primary/20 transition-all duration-300" onClick={() => { resetForm(); setView('login'); }}>
               <img src={logo} alt="MedTrack 360 Logo" className="h-10 w-auto rounded-xl shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform" />
               <span className="font-display font-bold text-2xl text-secondary dark:text-white tracking-tight">
-                MedTrack/<span className="text-primary">360</span>
+                MedTrack<span className="text-primary">360</span>
               </span>
             </div>
 
