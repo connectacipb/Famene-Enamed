@@ -18,6 +18,7 @@ import eventRoutes from './routes/event.routes';
 import commentRoutes from './routes/comment.routes';
 import uploadRoutes from './routes/upload.routes';
 import statsRoutes from './routes/stats.routes';
+import subjectRoutes from './routes/subject.routes';
 import { errorHandler } from './middlewares/error.middleware';
 
 const app = express();
@@ -50,6 +51,7 @@ app.use('/api/v1/comments', commentRoutes);
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/stats', statsRoutes);
+app.use('/api/v1/subjects', subjectRoutes);
 
 // Basic health check route
 app.get('/api/v1/health', (req, res) => {
