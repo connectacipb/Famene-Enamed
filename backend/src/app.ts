@@ -53,7 +53,7 @@ app.use('/api/v1/stats', statsRoutes);
 
 // Basic health check route
 app.get('/api/v1/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'FAMENE ENAMED Backend is running!' });
+  res.status(200).json({ status: 'ok', message: 'MedTrack 360 Backend is running!' });
 });
 
 // Error handling middleware
