@@ -4,9 +4,9 @@ import { config } from '../config';
 const swaggerDefinition = {
   openapi: '3.0.0',
   info: {
-    title: 'FAMENE ENAMED API',
+    title: 'MedTrack 360 API',
     version: '1.0.0',
-    description: 'API Documentation for FAMENE ENAMED Backend',
+    description: 'API Documentation for MedTrack 360 Backend',
   },
   servers: [
     {

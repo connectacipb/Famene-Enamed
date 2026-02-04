@@ -1,5 +1,6 @@
-FACENE/FAMENE
-This is a gamified study system designed to boost engagement and productivity of medical students. 
+MedTrack 360
+
+This is a gamified study system designed to boost engagement and productivity of FAMENE students.
 
 Project Structure
 This repository is organized into two main parts:

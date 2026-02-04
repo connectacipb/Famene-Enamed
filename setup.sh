@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# FAMENE ENAMED - Setup Script
+# MedTrack 360 - Setup Script
 
-echo "Starting setup for FAMENE ENAMED..."
+echo "Starting setup for MedTrack 360..."
 
 # Backend Setup
 echo "-----------------------------------"
