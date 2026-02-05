@@ -14,7 +14,8 @@ import {
     Moon,
     Network,
     LogOut,
-    User
+    User,
+    Users
 } from 'lucide-react';
 import logoLight from '../assets/logo - escuro.png';
 import logoDark from '../assets/logo.png';
@@ -141,6 +142,7 @@ const Layout = () => {
                     <SidebarItem to="/ranking" icon={Trophy} label="Ranking" />
                     <SidebarItem to="/achievements" icon={Medal} label="Conquistas" />
                     <SidebarItem to="/activities" icon={Calendar} label="Atividades" />
+                    <SidebarItem to="/classes" icon={Users} label="Turmas" />
                     <SidebarItem to="/profile" icon={User} label="Perfil" />
 
                     {user?.role === 'ADMIN' && (
