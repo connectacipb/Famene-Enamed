@@ -15,6 +15,7 @@ import {
     Network,
     LogOut,
     User,
+    Users
     BookOpen
 } from 'lucide-react';
 import logoLight from '../assets/logo - escuro.png';
@@ -142,6 +143,7 @@ const Layout = () => {
                     <SidebarItem to="/ranking" icon={Trophy} label="Ranking" />
                     <SidebarItem to="/achievements" icon={Medal} label="Conquistas" />
                     <SidebarItem to="/activities" icon={Calendar} label="Atividades" />
+                    <SidebarItem to="/classes" icon={Users} label="Turmas" />
                     <SidebarItem to="/contents" icon={BookOpen} label="Conteúdos" />
                     <SidebarItem to="/profile" icon={User} label="Perfil" />
 
