@@ -7,7 +7,7 @@ export const registerSchema = z.object({
     name: z.string().min(3, 'Name must be at least 3 characters long'),
     email: z.string().min(1, 'Username or Email is required'),
     password: passwordSchema,
-    role: z.nativeEnum(Role).optional().default(Role.MEMBER), // Default to MEMBER, ADMIN/LEADER set by admin
+    role: z.nativeEnum(Role).optional().default(Role.STUDENT), // Default to STUDENT
   }),
 });
 
