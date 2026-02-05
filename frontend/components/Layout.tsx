@@ -16,6 +16,7 @@ import {
     LogOut,
     User,
     Users
+    BookOpen
 } from 'lucide-react';
 import logoLight from '../assets/logo - escuro.png';
 import logoDark from '../assets/logo.png';
@@ -143,6 +144,7 @@ const Layout = () => {
                     <SidebarItem to="/achievements" icon={Medal} label="Conquistas" />
                     <SidebarItem to="/activities" icon={Calendar} label="Atividades" />
                     <SidebarItem to="/classes" icon={Users} label="Turmas" />
+                    <SidebarItem to="/contents" icon={BookOpen} label="Conteúdos" />
                     <SidebarItem to="/profile" icon={User} label="Perfil" />
 
                     {user?.role === 'ADMIN' && (
@@ -239,8 +241,8 @@ const Layout = () => {
                 <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface-light/90 dark:bg-surface-dark/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 flex items-center justify-around px-2 z-50">
                     <BottomNavItem to="/dashboard" icon={LayoutDashboard} label="Home" />
                     <BottomNavItem to="/projects" icon={FolderOpen} label="Projetos" />
+                    <BottomNavItem to="/contents" icon={BookOpen} label="Conteúdo" />
                     <BottomNavItem to="/ranking" icon={Trophy} label="Rank" />
-                    <BottomNavItem to="/activities" icon={Calendar} label="Ativ" />
                     <BottomNavItem to="/profile" icon={User} label="Perfil" />
                 </nav>
             </div>
