@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# FAMENE ENAMED - Development Script
+# MedTrack 360 - Development Script
 
-echo "Starting FAMENE ENAMED in development mode..."
+echo "Starting MedTrack 360 in development mode..."
 
 # Function to handle script termination
 cleanup() {

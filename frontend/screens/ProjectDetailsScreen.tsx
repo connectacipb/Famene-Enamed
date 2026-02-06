@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DragDropContext, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable } from '@hello-pangea/dnd';
 import { StrictModeDroppable } from '../components/StrictModeDroppable';
 import { deleteTask, getProjectKanban, updateTaskStatus, createColumn, updateColumn, deleteColumn, reorderColumns, createQuickTask } from '../services/task.service';
 import { getProfile } from '../services/user.service';

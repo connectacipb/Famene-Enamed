@@ -40,6 +40,8 @@ model User {
   taskAssignments     TaskAssignee[]     @relation("TaskAssignees")
   tier                Tier               @relation(fields: [tierId], references: [id])
   userAchievements    UserAchievement[]
+  createdSubjects     Subject[]          @relation("CreatedSubjects")
+  createdQuestions    Question[]         @relation("CreatedQuestions")
 }
 
 model Project {
@@ -293,4 +295,37 @@ enum EventType {
   MEETING
   WORKSHOP
   EVENT
+}
+
+enum SubjectStatus {
+  ACTIVE
+  DRAFT
+}
+
+model Subject {
+  id            String        @id @default(uuid())
+  title         String
+  description   String?
+  code          String        @unique
+  icon          String
+  color         String
+  status        SubjectStatus @default(ACTIVE)
+  questionCount Int           @default(0)
+  createdById   String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  createdBy     User          @relation("CreatedSubjects", fields: [createdById], references: [id], onDelete: Cascade)
+  questions     Question[]
+}
+
+model Question {
+  id          String   @id @default(uuid())
+  text        String
+  subjectId   String
+  difficulty  Int      @default(1)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdBy   User     @relation("CreatedQuestions", fields: [createdById], references: [id], onDelete: Cascade)
 }

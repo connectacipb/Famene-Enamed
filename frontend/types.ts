@@ -132,3 +132,26 @@ export type GetAdminUsersParams = {
   search?: string;
   all?: boolean;
 };
+
+export interface Subject {
+  id: string;
+  title: string;
+  description?: string;
+  code: string;
+  icon: string;
+  color: string;
+  status: 'ACTIVE' | 'DRAFT';
+  questionCount: number;
+}
+
+export type SubjectStatus = 'ACTIVE' | 'DRAFT';
+
+export const subjectStatusLabels: Record<SubjectStatus, string> = {
+  ACTIVE: 'Ativo',
+  DRAFT: 'Rascunho'
+};
+
+export const subjectStatusStyles: Record<SubjectStatus, string> = {
+  ACTIVE: 'bg-green-500/10 text-green-500',
+  DRAFT: 'bg-yellow-500/10 text-yellow-500'
+};

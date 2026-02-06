@@ -1,6 +1,6 @@
-# FAMENE Backend
+# MedTrack 360 Backend
 
-Backend for FAMENE, a gamified study system.
+Backend for MedTrack 360, a gamified study system for FAMENE students.
 
 ## Prerequisites
 
