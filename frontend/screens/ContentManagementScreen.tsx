@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
     Bone,
@@ -67,8 +68,8 @@ const DeleteConfirmModal = ({
     isLoading: boolean;
 }) => {
     if (!isOpen) return null;
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    return ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
             <div className="relative bg-white dark:bg-surface-dark rounded-2xl shadow-2xl max-w-md w-full p-6">
                 <button onClick={onCancel} className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600">
@@ -95,7 +96,8 @@ const DeleteConfirmModal = ({
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -134,8 +136,8 @@ const EditModal = ({
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    return ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
             <div className="relative bg-white dark:bg-surface-dark rounded-2xl shadow-2xl max-w-lg w-full p-6">
                 <button onClick={onCancel} className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600">
@@ -172,7 +174,8 @@ const EditModal = ({
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -212,59 +215,62 @@ const CreateSubjectModal = ({
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    return ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
-            <div className="relative bg-white dark:bg-surface-dark rounded-2xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-                <button onClick={onCancel} className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600">
-                    <X size={20} />
-                </button>
-                <div className="flex items-center gap-3 mb-6">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${styleConfigs[availableStyles[selectedStyle].color].gradientFrom} ${styleConfigs[availableStyles[selectedStyle].color].gradientTo} text-white flex items-center justify-center`}>
-                        <Plus size={18} />
+            <div className="relative bg-white dark:bg-surface-dark rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
+                <div className="p-6 overflow-y-auto max-h-[90vh]">
+                    <button onClick={onCancel} className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600 z-10">
+                        <X size={20} />
+                    </button>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${styleConfigs[availableStyles[selectedStyle].color].gradientFrom} ${styleConfigs[availableStyles[selectedStyle].color].gradientTo} text-white flex items-center justify-center`}>
+                            <Plus size={18} />
+                        </div>
+                        <h3 className="text-xl font-display font-bold text-secondary dark:text-white">Novo Conteúdo</h3>
                     </div>
-                    <h3 className="text-xl font-display font-bold text-secondary dark:text-white">Novo Conteúdo</h3>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Nome</label>
+                            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-darker text-secondary dark:text-white" placeholder="Ex: Anatomia Humana" required autoFocus />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Descrição</label>
+                            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-darker text-secondary dark:text-white resize-none" placeholder="Descreva o conteúdo..." required />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Ícone e Cor</label>
+                            <div className="grid grid-cols-6 gap-2">
+                                {availableStyles.map((style, index) => {
+                                    const IconComponent = iconMap[style.icon];
+                                    const config = styleConfigs[style.color];
+                                    return (
+                                        <button key={index} type="button" onClick={() => setSelectedStyle(index)} className={`aspect-square rounded-xl flex items-center justify-center transition-all ${selectedStyle === index ? `bg-gradient-to-br ${config.gradientFrom} ${config.gradientTo} text-white shadow-lg scale-110` : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`} title={style.label}>
+                                            <IconComponent size={20} />
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                            <div className="flex gap-3">
+                                <button type="button" onClick={() => setStatus('active')} className={`flex-1 py-3 rounded-xl border font-bold ${status === 'active' ? 'border-green-500 bg-green-50 dark:bg-green-500/10 text-green-600' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}>Ativo</button>
+                                <button type="button" onClick={() => setStatus('draft')} className={`flex-1 py-3 rounded-xl border font-bold ${status === 'draft' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}>Rascunho</button>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 pt-2">
+                            <button type="button" onClick={onCancel} disabled={isLoading} className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold">Cancelar</button>
+                            <button type="submit" disabled={isLoading} className="flex-1 py-3 rounded-xl bg-primary hover:bg-primary/90 text-secondary font-bold flex items-center justify-center gap-2">
+                                {isLoading ? <Loader2 className="animate-spin" size={18} /> : null}
+                                Criar Conteúdo
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Nome</label>
-                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-darker text-secondary dark:text-white" placeholder="Ex: Anatomia Humana" required autoFocus />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Descrição</label>
-                        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-darker text-secondary dark:text-white resize-none" placeholder="Descreva o conteúdo..." required />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Ícone e Cor</label>
-                        <div className="grid grid-cols-6 gap-2">
-                            {availableStyles.map((style, index) => {
-                                const IconComponent = iconMap[style.icon];
-                                const config = styleConfigs[style.color];
-                                return (
-                                    <button key={index} type="button" onClick={() => setSelectedStyle(index)} className={`aspect-square rounded-xl flex items-center justify-center transition-all ${selectedStyle === index ? `bg-gradient-to-br ${config.gradientFrom} ${config.gradientTo} text-white shadow-lg scale-110` : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`} title={style.label}>
-                                        <IconComponent size={20} />
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                        <div className="flex gap-3">
-                            <button type="button" onClick={() => setStatus('active')} className={`flex-1 py-3 rounded-xl border font-bold ${status === 'active' ? 'border-green-500 bg-green-50 dark:bg-green-500/10 text-green-600' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}>Ativo</button>
-                            <button type="button" onClick={() => setStatus('draft')} className={`flex-1 py-3 rounded-xl border font-bold ${status === 'draft' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}>Rascunho</button>
-                        </div>
-                    </div>
-                    <div className="flex gap-3 pt-2">
-                        <button type="button" onClick={onCancel} disabled={isLoading} className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold">Cancelar</button>
-                        <button type="submit" disabled={isLoading} className="flex-1 py-3 rounded-xl bg-primary hover:bg-primary/90 text-secondary font-bold flex items-center justify-center gap-2">
-                            {isLoading ? <Loader2 className="animate-spin" size={18} /> : null}
-                            Criar Conteúdo
-                        </button>
-                    </div>
-                </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
