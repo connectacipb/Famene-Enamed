@@ -13,7 +13,7 @@ model User {
   name                String
   email               String             @unique
   passwordHash        String
-  role                Role               @default(MEMBER)
+  role                Role               @default(STUDENT)
   isActive            Boolean            @default(true)
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
@@ -258,6 +258,8 @@ enum Role {
   ADMIN
   LEADER
   MEMBER
+  STUDENT
+  TEACHER
 }
 
 enum TaskStatus {

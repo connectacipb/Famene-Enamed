@@ -20,8 +20,13 @@ export const login = async (email: string, password: string): Promise<LoginRespo
   return response.data;
 };
 
-export const register = async (name: string, email: string, password: string) => {
-  const response = await api.post('/auth/register', { name, email, password });
+export const register = async (
+  name: string,
+  email: string,
+  password: string,
+  role: 'STUDENT' | 'TEACHER' = 'STUDENT'
+) => {
+  const response = await api.post('/auth/register', { name, email, password, role });
   return response.data;
 };
 
