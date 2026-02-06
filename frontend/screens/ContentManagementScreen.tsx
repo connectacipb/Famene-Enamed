@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Calculator,
@@ -9,7 +9,6 @@ import {
     Globe,
     Plus,
     Search,
-    MoreVertical,
     FileEdit,
     ShieldX,
     HelpCircle,
@@ -109,61 +108,6 @@ const initialMockSubjects: Subject[] = [
         iconBgColor: 'text-indigo-400'
     }
 ];
-
-// Dropdown Menu Component
-const DropdownMenu = ({
-    isOpen,
-    onClose,
-    onEdit,
-    onDelete
-}: {
-    isOpen: boolean;
-    onClose: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
-}) => {
-    const menuRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                onClose();
-            }
-        };
-
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isOpen, onClose]);
-
-    if (!isOpen) return null;
-
-    return (
-        <div
-            ref={menuRef}
-            className="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-surface-dark rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-        >
-            <button
-                onClick={onEdit}
-                className="w-full px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-3 transition-colors"
-            >
-                <Pencil size={16} className="text-primary" />
-                Editar
-            </button>
-            <button
-                onClick={onDelete}
-                className="w-full px-4 py-3 text-left text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-3 transition-colors"
-            >
-                <Trash2 size={16} />
-                Excluir
-            </button>
-        </div>
-    );
-};
 
 // Delete Confirmation Modal
 const DeleteConfirmModal = ({
@@ -334,8 +278,8 @@ const EditModal = ({
                                 type="button"
                                 onClick={() => setStatus('active')}
                                 className={`flex-1 py-3 rounded-xl border font-bold transition-all ${status === 'active'
-                                        ? 'border-green-500 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400'
-                                        : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
+                                    ? 'border-green-500 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400'
+                                    : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
                                     }`}
                             >
                                 Ativo
@@ -344,8 +288,8 @@ const EditModal = ({
                                 type="button"
                                 onClick={() => setStatus('draft')}
                                 className={`flex-1 py-3 rounded-xl border font-bold transition-all ${status === 'draft'
-                                        ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
-                                        : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
+                                    ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
+                                    : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
                                     }`}
                             >
                                 Rascunho
@@ -380,7 +324,7 @@ const ContentManagementScreen = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isTeacher, setIsTeacher] = useState<boolean | null>(null);
     const [subjects, setSubjects] = useState<Subject[]>(initialMockSubjects);
-    const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; subject: Subject | null }>({
         isOpen: false,
         subject: null
@@ -417,7 +361,6 @@ const ContentManagementScreen = () => {
 
     // Handle edit
     const handleEdit = (subject: Subject) => {
-        setOpenMenuId(null);
         setEditModal({ isOpen: true, subject });
     };
 
@@ -432,7 +375,6 @@ const ContentManagementScreen = () => {
 
     // Handle delete click
     const handleDeleteClick = (subject: Subject) => {
-        setOpenMenuId(null);
         setDeleteModal({ isOpen: true, subject });
     };
 
@@ -524,20 +466,13 @@ const ContentManagementScreen = () => {
                                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${subject.gradientFrom} ${subject.gradientTo} text-white flex items-center justify-center shadow-lg ${subject.shadowColor}`}>
                                     <IconComponent size={24} />
                                 </div>
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setOpenMenuId(openMenuId === subject.id ? null : subject.id)}
-                                        className="p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                                    >
-                                        <MoreVertical size={20} />
-                                    </button>
-                                    <DropdownMenu
-                                        isOpen={openMenuId === subject.id}
-                                        onClose={() => setOpenMenuId(null)}
-                                        onEdit={() => handleEdit(subject)}
-                                        onDelete={() => handleDeleteClick(subject)}
-                                    />
-                                </div>
+                                <button
+                                    onClick={() => handleDeleteClick(subject)}
+                                    className="p-2 rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                                    title="Excluir conteúdo"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
                             </div>
 
                             {/* Subject Name */}
