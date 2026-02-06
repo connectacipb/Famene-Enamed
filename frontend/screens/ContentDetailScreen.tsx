@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft,
@@ -120,8 +121,8 @@ const CreateQuestionModal = ({ isOpen, onSave, onCancel, isLoading }: { isOpen: 
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    return ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
             <div className="relative bg-white dark:bg-surface-dark rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
                 <div className="p-6 max-h-[90vh] overflow-y-auto">
@@ -192,7 +193,8 @@ const CreateQuestionModal = ({ isOpen, onSave, onCancel, isLoading }: { isOpen: 
                     </form>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
