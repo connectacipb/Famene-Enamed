@@ -143,6 +143,9 @@ const Layout = () => {
                     <SidebarItem to="/ranking" icon={Trophy} label="Ranking" />
                     <SidebarItem to="/achievements" icon={Medal} label="Conquistas" />
                     <SidebarItem to="/activities" icon={Calendar} label="Atividades" />
+                    {user?.role === 'TEACHER' && (
+                        <SidebarItem to="/classes" icon={Users} label="Turmas" />
+                    )}
                     <SidebarItem to="/classes" icon={Users} label="Turmas" />
                     <SidebarItem to="/contents" icon={BookOpen} label="Conteúdos" />
                     <SidebarItem to="/profile" icon={User} label="Perfil" />

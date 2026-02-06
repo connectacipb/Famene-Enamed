@@ -17,6 +17,7 @@ const LoginScreen = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<'STUDENT' | 'TEACHER'>('STUDENT');
 
   // Forgot Password specific
   const [newPassword, setNewPassword] = useState('');
@@ -30,6 +31,7 @@ const LoginScreen = () => {
     setFirstName('');
     setLastName('');
     setConfirmPassword('');
+    setRole('STUDENT');
     setNewPassword('');
     setSecretWord('');
   };
@@ -64,7 +66,7 @@ const LoginScreen = () => {
     setLoading(true);
     try {
       const fullName = `${firstName} ${lastName}`.trim();
-      await register(fullName, email, password);
+      await register(fullName, email, password, role);
       toast.success('Conta criada com sucesso! Faça login.');
       setTimeout(() => {
         resetForm();
@@ -206,6 +208,32 @@ const LoginScreen = () => {
           {view === 'register' && (
             <form onSubmit={handleRegister} className="space-y-6">
               <div className="space-y-4">
+                {/* Seletor de Tipo de Usuário */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Você é:</label>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setRole('STUDENT')}
+                      className={`flex-1 py-3 rounded-lg border-2 transition-all font-medium flex items-center justify-center gap-2 ${role === 'STUDENT'
+                        ? 'border-primary bg-primary/10 text-primary dark:text-primary'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-gray-300'
+                        }`}
+                    >
+                      🎓 Aluno
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRole('TEACHER')}
+                      className={`flex-1 py-3 rounded-lg border-2 transition-all font-medium flex items-center justify-center gap-2 ${role === 'TEACHER'
+                        ? 'border-primary bg-primary/10 text-primary dark:text-primary'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-gray-300'
+                        }`}
+                    >
+                      👨‍🏫 Professor
+                    </button>
+                  </div>
+                </div>
                 <div className="flex gap-4">
                   <div className="w-1/2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome</label>
