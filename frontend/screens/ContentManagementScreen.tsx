@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Calculator,
@@ -12,11 +12,30 @@ import {
     MoreVertical,
     FileEdit,
     ShieldX,
-    HelpCircle
+    HelpCircle,
+    Trash2,
+    Pencil,
+    X,
+    AlertTriangle
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-// Mock data for subject cards
-const mockSubjects = [
+// Type for subject
+interface Subject {
+    id: number;
+    name: string;
+    description: string;
+    questionsCount: number;
+    status: 'active' | 'draft';
+    icon: React.ComponentType<{ size?: number }>;
+    gradientFrom: string;
+    gradientTo: string;
+    shadowColor: string;
+    iconBgColor: string;
+}
+
+// Initial mock data for subject cards
+const initialMockSubjects: Subject[] = [
     {
         id: 1,
         name: 'Matemática Básica',
@@ -91,10 +110,285 @@ const mockSubjects = [
     }
 ];
 
+// Dropdown Menu Component
+const DropdownMenu = ({
+    isOpen,
+    onClose,
+    onEdit,
+    onDelete
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    onEdit: () => void;
+    onDelete: () => void;
+}) => {
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div
+            ref={menuRef}
+            className="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-surface-dark rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+        >
+            <button
+                onClick={onEdit}
+                className="w-full px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-3 transition-colors"
+            >
+                <Pencil size={16} className="text-primary" />
+                Editar
+            </button>
+            <button
+                onClick={onDelete}
+                className="w-full px-4 py-3 text-left text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-3 transition-colors"
+            >
+                <Trash2 size={16} />
+                Excluir
+            </button>
+        </div>
+    );
+};
+
+// Delete Confirmation Modal
+const DeleteConfirmModal = ({
+    isOpen,
+    subjectName,
+    onConfirm,
+    onCancel
+}: {
+    isOpen: boolean;
+    subjectName: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+}) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                onClick={onCancel}
+            />
+
+            {/* Modal */}
+            <div className="relative bg-white dark:bg-surface-dark rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in zoom-in-95 fade-in duration-200">
+                {/* Close button */}
+                <button
+                    onClick={onCancel}
+                    className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                >
+                    <X size={20} />
+                </button>
+
+                {/* Icon */}
+                <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-500/10 flex items-center justify-center mx-auto mb-4">
+                    <AlertTriangle size={28} className="text-rose-500" />
+                </div>
+
+                {/* Content */}
+                <h3 className="text-xl font-display font-bold text-secondary dark:text-white text-center mb-2">
+                    Excluir Conteúdo?
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 text-center mb-6">
+                    Tem certeza que deseja excluir <strong className="text-secondary dark:text-white">"{subjectName}"</strong>?
+                    Esta ação não pode ser desfeita e todas as questões associadas serão removidas.
+                </p>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                    <button
+                        onClick={onCancel}
+                        className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-darker text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="flex-1 py-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold transition-colors shadow-lg shadow-rose-500/30"
+                    >
+                        Excluir
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Edit Modal Component
+const EditModal = ({
+    isOpen,
+    subject,
+    onSave,
+    onCancel
+}: {
+    isOpen: boolean;
+    subject: Subject | null;
+    onSave: (id: number, name: string, description: string, status: 'active' | 'draft') => void;
+    onCancel: () => void;
+}) => {
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [status, setStatus] = useState<'active' | 'draft'>('active');
+
+    useEffect(() => {
+        if (subject) {
+            setName(subject.name);
+            setDescription(subject.description);
+            setStatus(subject.status);
+        }
+    }, [subject]);
+
+    if (!isOpen || !subject) return null;
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (name.trim() && description.trim()) {
+            onSave(subject.id, name.trim(), description.trim(), status);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                onClick={onCancel}
+            />
+
+            {/* Modal */}
+            <div className="relative bg-white dark:bg-surface-dark rounded-2xl shadow-2xl max-w-lg w-full p-6 animate-in zoom-in-95 fade-in duration-200">
+                {/* Close button */}
+                <button
+                    onClick={onCancel}
+                    className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                >
+                    <X size={20} />
+                </button>
+
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-6">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${subject.gradientFrom} ${subject.gradientTo} text-white flex items-center justify-center`}>
+                        <Pencil size={18} />
+                    </div>
+                    <h3 className="text-xl font-display font-bold text-secondary dark:text-white">
+                        Editar Conteúdo
+                    </h3>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Name */}
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                            Nome do Assunto
+                        </label>
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-darker text-secondary dark:text-white focus:border-primary focus:ring-primary transition-all"
+                            placeholder="Ex: Matemática Básica"
+                            required
+                        />
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                            Descrição
+                        </label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={3}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-darker text-secondary dark:text-white focus:border-primary focus:ring-primary transition-all resize-none"
+                            placeholder="Descreva o conteúdo..."
+                            required
+                        />
+                    </div>
+
+                    {/* Status */}
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                            Status
+                        </label>
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setStatus('active')}
+                                className={`flex-1 py-3 rounded-xl border font-bold transition-all ${status === 'active'
+                                        ? 'border-green-500 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400'
+                                        : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
+                                    }`}
+                            >
+                                Ativo
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setStatus('draft')}
+                                className={`flex-1 py-3 rounded-xl border font-bold transition-all ${status === 'draft'
+                                        ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
+                                        : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
+                                    }`}
+                            >
+                                Rascunho
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-surface-darker text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            className="flex-1 py-3 rounded-xl bg-primary hover:bg-primary/90 text-secondary font-bold transition-colors shadow-lg shadow-primary/30"
+                        >
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 const ContentManagementScreen = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [isTeacher, setIsTeacher] = useState<boolean | null>(null);
+    const [subjects, setSubjects] = useState<Subject[]>(initialMockSubjects);
+    const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; subject: Subject | null }>({
+        isOpen: false,
+        subject: null
+    });
+    const [editModal, setEditModal] = useState<{ isOpen: boolean; subject: Subject | null }>({
+        isOpen: false,
+        subject: null
+    });
 
     // Check if user is a teacher
     useEffect(() => {
@@ -116,10 +410,40 @@ const ContentManagementScreen = () => {
     }, []);
 
     // Filter subjects based on search term
-    const filteredSubjects = mockSubjects.filter(subject =>
+    const filteredSubjects = subjects.filter(subject =>
         subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         subject.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Handle edit
+    const handleEdit = (subject: Subject) => {
+        setOpenMenuId(null);
+        setEditModal({ isOpen: true, subject });
+    };
+
+    // Handle save edit
+    const handleSaveEdit = (id: number, name: string, description: string, status: 'active' | 'draft') => {
+        setSubjects(prev => prev.map(s =>
+            s.id === id ? { ...s, name, description, status } : s
+        ));
+        setEditModal({ isOpen: false, subject: null });
+        toast.success('Conteúdo atualizado com sucesso!');
+    };
+
+    // Handle delete click
+    const handleDeleteClick = (subject: Subject) => {
+        setOpenMenuId(null);
+        setDeleteModal({ isOpen: true, subject });
+    };
+
+    // Handle confirm delete
+    const handleConfirmDelete = () => {
+        if (deleteModal.subject) {
+            setSubjects(prev => prev.filter(s => s.id !== deleteModal.subject!.id));
+            toast.success(`"${deleteModal.subject.name}" foi excluído com sucesso!`);
+        }
+        setDeleteModal({ isOpen: false, subject: null });
+    };
 
     // Show access denied screen for non-teachers
     if (isTeacher === false) {
@@ -200,9 +524,20 @@ const ContentManagementScreen = () => {
                                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${subject.gradientFrom} ${subject.gradientTo} text-white flex items-center justify-center shadow-lg ${subject.shadowColor}`}>
                                     <IconComponent size={24} />
                                 </div>
-                                <button className="p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                                    <MoreVertical size={20} />
-                                </button>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setOpenMenuId(openMenuId === subject.id ? null : subject.id)}
+                                        className="p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                    >
+                                        <MoreVertical size={20} />
+                                    </button>
+                                    <DropdownMenu
+                                        isOpen={openMenuId === subject.id}
+                                        onClose={() => setOpenMenuId(null)}
+                                        onEdit={() => handleEdit(subject)}
+                                        onDelete={() => handleDeleteClick(subject)}
+                                    />
+                                </div>
                             </div>
 
                             {/* Subject Name */}
@@ -227,15 +562,18 @@ const ContentManagementScreen = () => {
                                     </div>
                                     <div className="h-4 w-px bg-gray-300 dark:bg-gray-700"></div>
                                     <span className={`text-xs font-semibold px-2 py-1 rounded ${subject.status === 'active'
-                                            ? 'text-green-500 bg-green-500/10'
-                                            : 'text-yellow-500 bg-yellow-500/10'
+                                        ? 'text-green-500 bg-green-500/10'
+                                        : 'text-yellow-500 bg-yellow-500/10'
                                         }`}>
                                         {subject.status === 'active' ? 'Ativo' : 'Rascunho'}
                                     </span>
                                 </div>
 
                                 {/* Edit Button */}
-                                <button className="w-full py-3 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary hover:text-secondary text-primary font-bold transition-all flex items-center justify-center gap-2">
+                                <button
+                                    onClick={() => handleEdit(subject)}
+                                    className="w-full py-3 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary hover:text-secondary text-primary font-bold transition-all flex items-center justify-center gap-2"
+                                >
                                     <FileEdit size={16} />
                                     Editar Conteúdo
                                 </button>
@@ -259,6 +597,22 @@ const ContentManagementScreen = () => {
                     </p>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmModal
+                isOpen={deleteModal.isOpen}
+                subjectName={deleteModal.subject?.name || ''}
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setDeleteModal({ isOpen: false, subject: null })}
+            />
+
+            {/* Edit Modal */}
+            <EditModal
+                isOpen={editModal.isOpen}
+                subject={editModal.subject}
+                onSave={handleSaveEdit}
+                onCancel={() => setEditModal({ isOpen: false, subject: null })}
+            />
         </div>
     );
 };
