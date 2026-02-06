@@ -17,6 +17,7 @@ import AdminUsersScreen from './screens/AdminUsersScreen';
 import AdminProjectsScreen from './screens/AdminProjectsScreen';
 import ClassManagementScreen from './screens/ClassManagementScreen';
 import ContentManagementScreen from './screens/ContentManagementScreen';
+import ContentDetailScreen from './screens/ContentDetailScreen';
 
 import { Toaster } from 'react-hot-toast';
 
@@ -47,6 +48,7 @@ const App = () => {
           <Route path="/activities" element={<ActivitiesScreen />} />
           <Route path="/classes" element={<ClassManagementScreen />} />
           <Route path="/contents" element={<ContentManagementScreen />} />
+          <Route path="/contents/:id" element={<ContentDetailScreen />} />
 
           <Route path="/new-task" element={<NewTaskScreen />} />
           <Route path="/edit-task/:id" element={<NewTaskScreen />} />
