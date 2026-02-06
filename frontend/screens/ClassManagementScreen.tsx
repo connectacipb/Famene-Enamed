@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Share2,
     Code,
@@ -12,7 +13,8 @@ import {
     Filter,
     ChevronLeft,
     ChevronRight,
-    MoreVertical
+    MoreVertical,
+    ShieldX
 } from 'lucide-react';
 
 // Mock data for classes
@@ -61,8 +63,61 @@ const allStudents = [
 ];
 
 const ClassManagementScreen = () => {
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [isTeacher, setIsTeacher] = useState<boolean | null>(null);
+
+    // Verificar se o usuário é professor
+    useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user.role === 'TEACHER') {
+                    setIsTeacher(true);
+                } else {
+                    setIsTeacher(false);
+                }
+            } catch {
+                setIsTeacher(false);
+            }
+        } else {
+            setIsTeacher(false);
+        }
+    }, []);
+
+    // Mostrar tela de acesso negado para não-professores
+    if (isTeacher === false) {
+        return (
+            <div className="p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center min-h-[60vh] text-center">
+                <div className="w-20 h-20 rounded-full bg-rose-100 dark:bg-rose-500/10 flex items-center justify-center mb-6">
+                    <ShieldX size={40} className="text-rose-500" />
+                </div>
+                <h2 className="text-2xl font-display font-bold text-secondary dark:text-white mb-2">
+                    Acesso Restrito
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
+                    Esta área é exclusiva para professores. Apenas usuários com conta de professor podem gerenciar turmas.
+                </p>
+                <button
+                    onClick={() => navigate('/dashboard')}
+                    className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-secondary transition-colors"
+                >
+                    Voltar ao Dashboard
+                </button>
+            </div>
+        );
+    }
+
+    // Loading state
+    if (isTeacher === null) {
+        return (
+            <div className="p-4 sm:p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
+                <div className="animate-pulse text-gray-400">Carregando...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto pb-20 md:pb-0">
@@ -242,8 +297,8 @@ const ClassManagementScreen = () => {
                                             <img
                                                 alt={student.name}
                                                 className={`w-10 h-10 rounded-full border ${student.isAtRisk
-                                                        ? 'border-rose-200 dark:border-rose-500/30 ring-4 ring-rose-100/30 dark:ring-rose-500/10'
-                                                        : 'border-gray-200 dark:border-gray-700'
+                                                    ? 'border-rose-200 dark:border-rose-500/30 ring-4 ring-rose-100/30 dark:ring-rose-500/10'
+                                                    : 'border-gray-200 dark:border-gray-700'
                                                     }`}
                                                 src={student.avatar}
                                             />
@@ -279,15 +334,15 @@ const ClassManagementScreen = () => {
                                         </div>
                                     </td>
                                     <td className={`px-6 py-4 text-sm font-medium hidden sm:table-cell ${student.isAtRisk
-                                            ? 'text-rose-500 dark:text-rose-400 font-bold'
-                                            : 'text-gray-500 dark:text-gray-400'
+                                        ? 'text-rose-500 dark:text-rose-400 font-bold'
+                                        : 'text-gray-500 dark:text-gray-400'
                                         }`}>
                                         {student.lastActivity}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button className={`p-1 transition-colors ${student.isAtRisk
-                                                ? 'text-gray-300 dark:text-gray-600 hover:text-rose-500 dark:hover:text-rose-400'
-                                                : 'text-gray-300 dark:text-gray-600 hover:text-primary dark:hover:text-primary'
+                                            ? 'text-gray-300 dark:text-gray-600 hover:text-rose-500 dark:hover:text-rose-400'
+                                            : 'text-gray-300 dark:text-gray-600 hover:text-primary dark:hover:text-primary'
                                             }`}>
                                             <MoreVertical size={20} />
                                         </button>
