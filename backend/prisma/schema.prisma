@@ -297,6 +297,38 @@ enum EventType {
   EVENT
 }
 
+enum QuestionDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Subject {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String
+  icon        String   @default("Bone")
+  color       String   @default("blue")
+  status      String   @default("draft")
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   User     @relation("CreatedSubjects", fields: [createdById], references: [id], onDelete: Cascade)
+  questions   Question[]
+}
+
+model Question {
+  id            String             @id @default(uuid())
+  question      String
+  options       String[]
+  correctAnswer Int
+  difficulty    QuestionDifficulty @default(MEDIUM)
+  subjectId     String
+  createdById   String
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  subject       Subject            @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdBy     User               @relation("CreatedQuestions", fields: [createdById], references: [id], onDelete: Cascade)
 enum SubjectStatus {
   ACTIVE
   DRAFT
